@@ -1,0 +1,181 @@
+<?php
+
+/**
+* Implements hook_menu().
+*/
+function tw_search_menu() {
+  $items['admin/config/search/tw_search'] = array(
+    'title' => 'TRIPwire Promoted Search',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_search_settings_form'),
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_search.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function tw_search_facet_items_alter(&$build, &$settings) {
+  if ($settings->facet == "type") {
+    foreach($build as $key => $item) {
+      switch($build[$key]["#markup"]) {
+        case "Profiles":
+          $build[$key]["#markup"] = 'Explosive Profiles';
+          break;
+        case "Library":
+          $build[$key]["#markup"] = 'Documents/Reports';
+          break;
+        case "What's New Article":
+          $build[$key]["#markup"] = "What's New";
+          break;
+        case "Training and Education":
+          $build[$key]["#markup"] = 'OBP Events';
+          break;
+        case "Basic Page":
+          $build[$key]["#markup"] = 'Misc';
+          break;
+        case "Video":
+          $build[$key]["#markup"] = 'Videos';
+          break;
+        case "Program Landing Page":
+          $build[$key]["#markup"] = 'OBP Program Materials';
+          break;
+      }
+    }
+  }
+}
+
+// TRIP2-256: Providing promoted search block
+
+
+/**
+ * Implements hook_block_info().
+ */
+function tw_search_block_info() {
+  $blocks = array();
+  $blocks['tw_search_promoted_block'] = array(
+    'info' => t('Promoted TripWIRE Searches'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  $blocks['tw_search_popular_block'] = array(
+    'info' => t('Popular TripWIRE searches'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function tw_search_block_view($delta='') {
+  $block = array();
+  
+  switch($delta) {
+    case 'tw_search_promoted_block' :
+      $block['title'] = 'Promoted TRIPwire Searches';
+      $block['content'] = tw_search_view();
+      break;
+    case 'tw_search_popular_block' :
+      $links = apachesolr_stats_block_frequent_keywords('core_search');
+      $block = array(
+        'subject' => t('Popular searches'),
+        'content' => tw_search_popular_view($links),
+      );
+  }
+  
+  return $block;
+}
+
+/**
+ * Custom function to assemble renderable array for block content.
+ * Returns a renderable array with the block content.
+ * @return
+ *   returns a renderable array of block content.
+ */
+function tw_search_view() {
+
+  $promoted_search = array();
+  $promo1 = variable_get('tw_search_promo1');
+  $promo2 = variable_get('tw_search_promo2');
+  $promo3 = variable_get('tw_search_promo3');
+  
+  if ($promo1 !== NULL && $promo1 !== '' ) {
+    $promoted_search[] = variable_get('tw_search_promo1');
+  }
+
+  if ($promo2 !== NULL && $promo2 !== '' ) {
+    $promoted_search[] = variable_get('tw_search_promo2');
+  }
+
+  if ($promo3 !== NULL && $promo3 !== '' ) {
+    $promoted_search[] = variable_get('tw_search_promo3');
+  }
+
+  if (!empty($promoted_search)) {
+    $block = '<ul>';
+    foreach ($promoted_search as $p) {
+      $block .= '<li><a href="/search?search_api_views_fulltext=' . rawurlencode($p) . '">' . $p . '</a></li>';
+    }
+    $block .= '</ul>';
+  } else {
+    $block = NULL;
+  }
+
+  return $block;
+}
+
+function tw_search_popular_view($links) {
+  if (!empty($links)) {
+    $block = '<ul>';
+    foreach ($links as $l) {
+      $block .= '<li>' . $l . '</li>';
+    }
+    $block .= '</ul>';
+  } else {
+    $block = NULL;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_ds_fields_info().
+ */
+function tw_search_ds_fields_info($entity_type) {
+
+  // Provide a custom field to display suite
+  $fields = array();
+
+  $fields['node']['rate'] = array(
+    'title' => t('Rate Disabled'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => 'tw_search_ds_field_rate',
+  );
+
+  $fields['node']['rate_full'] = array(
+    'title' => t('Rate Enabled'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => 'tw_search_ds_field_rate_enable',
+  );
+
+  return $fields;
+}
+
+function tw_search_ds_field_rate($field) {
+   return rate_embed($field['entity'], 'like', RATE_DISABLED);
+}
+
+function tw_search_ds_field_rate_enable($field) {
+  return rate_embed($field['entity'], 'like', RATE_FULL);
+}
+
+function tw_search_update_7002() {
+  variable_set('apachesolr_votingapi_criteria', array(
+    'title' => 'Valuable',
+    'content_type' => 'node',
+    'value_type' => 'options',
+    'function' => 'option-1',
+    'tag' => 'vote',
+  ));
+}

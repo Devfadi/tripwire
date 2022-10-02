@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Rules Scheduler View feature.
+ */
+
+include_once 'rules_scheduler_view.features.inc';

@@ -1,0 +1,9 @@
+name = Search API Voting
+description = Integrates Voting API with Search API.
+core = 7.x
+package = Search
+
+files[] = includes/callback_voting.inc
+
+dependencies[] = votingapi
+dependencies[] = search_api

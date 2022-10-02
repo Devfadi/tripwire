@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function tw_navigation_block_info() {
+  $blocks = array();
+  $blocks['tw_logout_block'] = array(
+    'info' => t('Logout Links'),
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function tw_navigation_block_view($delta='') {
+  $block = array();
+  
+  switch($delta) {
+    case 'tw_logout_block' :
+      $block['content'] = tw_navigation_view();
+      break;
+  }
+  
+  return $block;
+}
+
+/**
+ * Custom function to assemble renderable array for block content.
+ * Returns a renderable array with the block content.
+ * @return
+ *   returns a renderable array of block content.
+ */
+function tw_navigation_view() {
+
+  // Block HTML output
+  global $user;
+  $profile = profile2_load_by_user($user->uid, 'personal_information');
+  $name = '<div class="welcomeblock">';
+  if(isset($profile->field_first_name['und'][0]['value'])) {
+    $name .= '<p>Welcome, ' . filter_xss($profile->field_first_name['und'][0]['value']) . '</p><p class="myaccount"><a href=/user/' . $user->uid . '/edit>My Account</a>';
+  } else {
+    $name .= '<p>Welcome back</p><p class="myaccount"><a href=/user/' . $user->uid . '/edit>My Account</a>';
+  }
+
+  $name .='</div>';
+  $block = $name . '<div class="logoutbutton"><p><a class="login-button" href="/user/logout">Log off</a></p></div>';
+
+  return $block;
+
+}
+/**
+ * Alter content in Administration menu bar before it is rendered.
+ *
+ * @param $content
+ *   A structured array suitable for drupal_render(), at the very least
+ *   containing the keys 'menu' and 'links'.  Most implementations likely want
+ *   to alter or add to 'links'.
+ *
+ * $content['menu'] contains the HTML representation of the 'admin_menu' menu
+ * tree.
+ * @see admin_menu_menu_alter()
+ *
+ * $content['links'] contains additional top-level links in the Administration
+ * menu, such as the icon menu or the logout link. You can add more items here
+ * or play with the #weight attribute to customize them.
+ * @see theme_admin_menu_links()
+ * @see admin_menu_links_icon()
+ * @see admin_menu_links_user()
+ */
+function tw_navigation_admin_menu_output_alter(&$content) {
+  
+  $admin_menu_exclusions = array(
+    t('Tasks'),
+    t('Index'),
+  );
+  
+  foreach($content['menu'] as $menu_key => $menu_tree) {
+    if (is_array($menu_tree) && array_key_exists('#title', $menu_tree) && in_array($menu_tree['#title'], $admin_menu_exclusions)) { 
+      unset($content['menu'][$menu_key]);
+    }
+  }
+
+}
+
+/**
+* Implements hook_menu().
+*/
+function tw_navigation_menu() {
+  $items['admin/reports/obp-dashboard'] = array(
+    'title' => 'Dashboard',
+    'page callback' => 'tw_navigation_obp_dashboard',
+    'access callback' => 'tw_registration_user_has_role',
+    'access arguments' =>  array('Help Desk', 'administrator'),
+  );
+ 
+  return $items;
+}
+
+/**
+* Custom callback function.
+*/
+function tw_navigation_obp_dashboard() {
+  $content['raw_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<ul><li><a href="/admin/dashboard/intl-docs">Documents available to International Users</a></li><li><a href="/admin/dashboard/etr">ETR Report Dashboard</a></li><li><a href="/admin/dashboard/historical-user-information">Historical user information</a></li><li><a href="/admin/dashboard/registered-users">New TripWIRE Registrations</a></li><li><a href="/admin/dashboard/non-obp-reports">Non-OBP Documents</a></li><li><a href="/admin/dashboard/shares">Share Stats</a></li><li><a href="/admin/dashboard/login-history">User login history</a></li><li><a href="/admin/dashboard/user-status">User Status History Tracking</a></li></ul>',
+  );
+ 
+  return $content;
+}
+
+/**
+ * Implements hook_update_N to add OBP Event Map Data link to menu.
+ */
+function tw_navigation_update_7100() {
+  $item = array(
+    'link_path' => 'node/add/map-data',
+    'link_title' => 'OBP Event Map Data',
+    'menu_name' => 'management', // Menu machine name, for example: main-menu
+    'weight' => 0,
+    'plid' => 24326, // Parent menu item, 0 if menu item is on top level
+    'module' => 'menu',
+  );
+  menu_link_save($item);
+}

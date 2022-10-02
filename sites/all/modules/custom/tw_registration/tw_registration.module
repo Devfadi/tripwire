@@ -1,0 +1,1321 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function tw_registration_form_user_register_form_alter(&$form, &$form_state)
+{
+  $form['password_reset']['#title'] = 'Authentication Questions';
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'tw_registration') . '/css/tw_registration.css',
+  );
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'tw_registration') . '/js/tw_registration.js',
+    drupal_get_path('module', 'tw_registration') . '/js/jquery.maskedinput.min.js',
+    drupal_get_path('module', 'tw_registration') . '/js/tw_registration_username.js',
+  );
+  $form['account']['mail']['#title'] = 'Professional E-mail address';
+  $form['profile_employment_information']['field_federal_region']['#access'] = FALSE;
+  $form['#validate'][] = 'tw_registration_username_validate';
+  $form['#validate'][] = 'tw_registration_email_validate';
+  $form['#validate'][] = 'tw_registration_fed_region_validate';
+}
+
+function tw_registration_username_validate($form, &$form_state)
+{
+  if ($form['#user_category'] !== 'register') {
+    return;
+  }
+  $username_validation_rule = variable_get('username_validation_rule', array());
+  $label = $form['account']['name']['#title'];
+  $username = $form_state['values']['name'];
+  $min_char = $username_validation_rule['min_char'];
+  $max_char = $username_validation_rule['max_char'];
+  $min_words = $username_validation_rule['min_words'];
+  $max_words = $username_validation_rule['max_words'];
+  $word_count = count(explode(' ', $username));
+
+  $blacklist_char = isset($username_validation_rule['blacklist_char']) ? $username_validation_rule['blacklist_char'] : '';
+  if (!empty($blacklist_char)) {
+    // Replace \r\n with comma.
+    $blacklist_char = str_replace("\r\n", ',', $blacklist_char);
+    // Store into array.
+    $blacklist_char = explode(',', $blacklist_char);
+    // Find any exclude value found in username.
+    $findings = _username_validation_search_excludes_in_title($username, $blacklist_char);
+    if ($findings) {
+      form_set_error('name', t('The characters/words are not allowed to enter in the username - @findings', array('@findings' => implode(',', $findings))));
+    }
+  }
+  if (strlen($username) < $min_char) {
+    form_set_error('name', t($label . ' should have minimum of ' . $min_char . ' characters'));
+  }
+  if (strlen($username) > $max_char) {
+    form_set_error('name', t($label . ' should have maximum of ' . $max_char . ' characters'));
+  }
+  if ($word_count > $max_words) {
+    form_set_error('name', t($label . ' should have maximum of ' . $max_words . ' word(s)'));
+  }
+}
+
+function tw_registration_email_validate($form, &$form_state)
+{
+  // TRIP2-539: Testing to ensure professional email address and EVC email address are not the same value
+  if (isset($form_state['values']['mail'])) {
+    if (isset($form_state['values']['profile_indicate_evc']['field_verification_contact_email']['und'][0]['value'])) {
+      if ($form_state['values']['mail'] == $form_state['values']['profile_indicate_evc']['field_verification_contact_email']['und'][0]['value']) {
+        form_set_error('mail', t('Professional email address must not be the same as Employment Verification Contact Email Address.'));
+      }
+    }
+  }
+}
+
+function tw_registration_fed_region_validate($form, &$form_state)
+{
+  if (isset($form_state['clicked_button'])) {
+    if ($form_state['clicked_button']['#value'] == 'Create new account') {
+      if (isset($form_state['values']['profile_employment_information']['field_state_province_region']['und'][0]['value'])) {
+        $fed_region_tid = tw_registration_fed_region_helper($form_state['values']['profile_employment_information']['field_state_province_region']['und'][0]['value']);
+        $form_state['values']['profile_employment_information']['field_federal_region']['und'][0]['tid'] = $fed_region_tid;
+      }
+    }
+  }
+}
+
+function tw_registration_fed_region_helper($state)
+{
+  $states = array(
+    'AL' => 'Alabama',
+    'AK' => 'Alaska',
+    'AZ' => 'Arizona',
+    'AR' => 'Arkansas',
+    'CA' => 'California',
+    'CO' => 'Colorado',
+    'CT' => 'Connecticut',
+    'DE' => 'Delaware',
+    'DC' => 'District Of Columbia',
+    'FL' => 'Florida',
+    'GA' => 'Georgia',
+    'HI' => 'Hawaii',
+    'ID' => 'Idaho',
+    'IL' => 'Illinois',
+    'IN' => 'Indiana',
+    'IA' => 'Iowa',
+    'KS' => 'Kansas',
+    'KY' => 'Kentucky',
+    'LA' => 'Louisiana',
+    'ME' => 'Maine',
+    'MD' => 'Maryland',
+    'MA' => 'Massachusetts',
+    'MI' => 'Michigan',
+    'MN' => 'Minnesota',
+    'MS' => 'Mississippi',
+    'MO' => 'Missouri',
+    'MT' => 'Montana',
+    'NE' => 'Nebraska',
+    'NV' => 'Nevada',
+    'NH' => 'New Hampshire',
+    'NJ' => 'New Jersey',
+    'NM' => 'New Mexico',
+    'NY' => 'New York',
+    'NC' => 'North Carolina',
+    'ND' => 'North Dakota',
+    'OH' => 'Ohio',
+    'OK' => 'Oklahoma',
+    'OR' => 'Oregon',
+    'PA' => 'Pennsylvania',
+    'RI' => 'Rhode Island',
+    'SC' => 'South Carolina',
+    'SD' => 'South Dakota',
+    'TN' => 'Tennessee',
+    'TX' => 'Texas',
+    'UT' => 'Utah',
+    'VT' => 'Vermont',
+    'VA' => 'Virginia',
+    'WA' => 'Washington',
+    'WV' => 'West Virginia',
+    'WI' => 'Wisconsin',
+    'WY' => 'Wyoming',
+  );
+  if (strlen($key) <= 2) {
+    $key = $state;
+  } else {
+    $key = array_search($state, $states);
+  }
+
+  $vocabulary = taxonomy_vocabulary_machine_name_load('federal_region');
+  $terms = entity_load('taxonomy_term', FALSE, array('vid' => $vocabulary->vid));
+  $fed_regions = array();
+  foreach ($terms as $t) {
+    $fed_regions[$t->tid] = $t->name;
+  }
+  foreach ($fed_regions as $k => $fr) {
+    if (strpos($fr, $key) !== FALSE) {
+      // Match found
+      $fed_region_tid = $k;
+      return $fed_region_tid;
+    }
+  }
+}
+
+function tw_blast_textarea($form, &$form_state)
+{
+  $valsave = $form_state['values']['message']['value'];
+  unset($form_state['values']['message']);
+  $form_state['values']['message'] = $valsave;
+}
+
+function tw_registration_form_alter(&$form, &$form_state, $form_id)
+{
+  if ($form_id == 'views_form_email_blast_page_1') {
+    if (isset($form['message'])) {
+      $form['recipient']['#default_value'] = '[user:mail]';
+      $form['recipient']['#attributes']['disabled'] = TRUE;
+      $form['message']['#type'] = 'text_format';
+      $form['message']['#format'] = 'tripwire';
+      $form['actions']['submit']['#validate'][] = 'tw_blast_textarea';
+    }
+
+    if (isset($form['#vbo_confirm_form_title'])) {
+      if ($form['#vbo_confirm_form_title'] == 'Are you sure you want to perform <em class="placeholder">Send e-mail</em> on the selected items?') {
+        $form['some_text'] = array(
+          '#markup' => '<p><strong>Warning! Clicking Send Email will send out emails to the user population based on filters applied</strong></p>'
+        );
+      }
+    }
+  }
+  if ($form_id == 'user_pass_reset') {
+    if (strpos($_SERVER['REQUEST_URI'], '/user/reset') !== false) {
+      if (isset($_GET['gen'])) {
+        if ($_GET['gen'] == 'newuser' || $_GET['gen'] == 'resend') {
+          array_unshift($form['#submit'], 'tw_registration_evc_send');
+          $form_state['redirect'] = 'thanks';
+        }
+      }
+    }
+  }
+  if ($form_id == 'user_login') {
+    $form['#attributes']['class'] = 'toboggan-unified';
+    $form['#attached']['css'] = array(
+      drupal_get_path('module', 'tw_registration') . '/css/tw_registration_access.css',
+    );
+    $form['name']['#prefix'] = '<div id="login-message">You are not logged in.</div><div id="login-links"><a href="/user/register" class="login-link" id="register-link">I want to create an account</a></div>';
+    $form['links']['#markup'] = '<div class="item-list"><ul><li class="last"><a href="/user/password" title="Request new password via e-mail.">Request new password</a></li></ul></div>';
+
+    // T2OM-116: Redoing request new password link to remove title attribute
+    $items = array();
+    $items[] = l(t('Request new password'), 'user/password', array());
+    $links = '<div class="item-list"><ul>';
+    foreach ($items as $i) {
+      $links .= '<li>' . $i . '</li>';
+    }
+    $links .= '</ul></div>';
+
+    $form['links']['#markup'] = $links;
+  }
+  if ($form_id == 'user_login_block') {
+    $form['#attributes']['class'] = 'toboggan-unified';
+    $form['#attached']['css'] = array(
+      drupal_get_path('module', 'tw_registration') . '/css/tw_registration_access.css',
+    );
+  }
+
+  if (isset($form_state['step'])) {
+    $form['#attached']['css'] = array(
+      drupal_get_path('module', 'tw_registration') . '/css/tw_registration.css',
+    );
+    if ($form_state['step'] !== 'register') {
+      $form['#attached']['js'] = array(
+        drupal_get_path('module', 'tw_registration') . '/js/tw_registration.js',
+        drupal_get_path('module', 'tw_registration') . '/js/jquery.maskedinput.min.js',
+      );
+    }
+  }
+
+  if ($form_id == "step_step_confirmation") {
+    if (isset($form_state['step'])) {
+      if ($form_state['step'] == 'confirmation') {
+        $uid = $form_state['user']->uid;
+        $pids = array();
+        $types = profile2_get_types();
+        //$entity_form = array();
+        module_load_include('inc', 'profile2_page', 'profile2_page');
+        $account = profile2_load_by_user($uid);
+        $formvals = array();
+        $fvhtml = '';
+        if (!empty($types)) {
+          foreach ($types as $type) {
+            $profile = (profile2_load_by_user($uid, $type->type));
+            if (isset($profile->pid)) {
+              $pids[] = $profile->pid;
+              $profile2 = profile2_by_uid_load($uid, $profile->type);
+              //dpm($profile2);
+              if ($profile2->type !== 'privacy_information' && $profile2->type !== 'main') {
+                $formvals[$profile2->label]['html'] = '<div class="profile-section">';
+                if ($profile2->label == 'Indicate EVC') {
+                  $formvals[$profile2->label]['html'] .= '<h2>Employment Verification Information</h2><div class="profile-body">';
+                } else {
+                  $formvals[$profile2->label]['html'] .= '<h2>' . $profile2->label . '</h2><div class="profile-body">';
+                }
+
+                foreach ($profile2 as $key => $value) {
+                  if (strpos($key, 'field') !== false) {
+                    if (isset($value['und'])) {
+                      //$formvals[$profile2->label][$key]['value'] = $value['und'][0]['value'];
+                      $info = field_info_instance('profile2', $key, $profile2->type);
+                      //$formvals[$profile2->label][$key]['label'] = $info['label'];
+                      $formvals[$profile2->label]['html'] .= '<div class="row ' . $key . '"><label>' . $info['label'] . '</label><div class="rowval">' . $value['und'][0]['value'] . '</div></div>';
+                    }
+                  }
+                }
+                $formvals[$profile2->label]['html'] .= '</div></div>';
+                //$entity_form[$profile2->type] = entity_ui_get_form('profile2', $profile2, 'edit');
+                //if ($profile2->label == 'Indicate EVC') {
+                //   $entity_form[$profile2->type]['profile_' . $profile2->type]['#prefix'] = '<h2>Employment Verification Information</h2>';
+                // } else {
+                //   $entity_form[$profile2->type]['profile_' . $profile2->type]['#prefix'] = '<h2>' . $profile2->label . '</h2>';
+                //  }
+              }
+            }
+          }
+          //dpm($entity_form);
+          foreach ($formvals as $fv) {
+            $fvhtml .= $fv['html'];
+          }
+
+          $form['profile_confirmation1']['message']['#markup'] = $fvhtml;
+          //$form['profile_confirmation'][] = $entity_form;
+        }
+      }
+    }
+  }
+
+  if ($form_id == 'user_profile_form') {
+    $form['#attached']['js'][] = array(
+      drupal_get_path('module', 'tw_registration') . '/js/hsin.js',
+      drupal_get_path('module', 'tw_registration') . '/js/jquery.maskedinput.min.js',
+    );
+
+    // TRIP2-500: Simplifying password rules
+    if (isset($form['account'])) {
+      if (isset($form['account']['password'])) {
+        $form['account']['password']['password_stats']['#type'] = 'fieldset';
+        $form['account']['password']['password_stats']['#description'] = $form['account']['password']['password_stats']['#markup'];
+        $form['account']['password']['password_stats']['#attributes'] = array('class' => array('password-stats'));
+      }
+    }
+
+    // TRIP2-520: Removing none options from statuses
+    unset($form['field_user_status']['und']['#options']['_none']);
+    unset($form['field_evc_status']['und']['#options']['_none']);
+    unset($form['field_account_states']['und']['#options']['_none']);
+
+    // TRIP2-414: Disabling cancel account button for all roles but admin. RID for admin role is 3
+    if (!user_has_role(3)) {
+      $form['actions']['cancel']['#access'] = FALSE;
+      // TRIP2-413: Disabling certain roles from being accessed by helpdesk
+      // T2OM-115: Disabling this code because adding disabled attribute was causing value to be stripped on save.  Instead, we disable via twadmin.hide_fields_helpdesk.js
+      // Disabling changing these roles for help desk for these roles: Help Desk, Administrator, Pre-Authenticated, Awaiting Approval
+      // RID for help desk role is 41
+      /*
+      if (user_has_role(41)) {
+        $form['account']['roles']['#access'] = TRUE;
+        $disabled_roles = array();       
+        $disabled_roles[] = user_role_load_by_name('Help Desk');
+        $disabled_roles[] = user_role_load_by_name('administrator');
+        $disabled_roles[] = user_role_load_by_name('Pre-Authenticated');
+        $disabled_roles[] = user_role_load_by_name('Awaiting Approval');
+        $disabled_roles[] = user_role_load_by_name('HSIN');
+        $disabled_roles[] = user_role_load_by_name('HSIN Pre-Authenticated');
+        foreach ($disabled_roles as $dr) {
+          //$form['account']['roles'][$dr->rid]['#disabled'] = TRUE;
+        }
+      }
+      */
+    }
+
+    // TRIP2-524: Ensuring any user saved has at least one role
+    if ($form['#user_category'] == 'account') {
+      $form['#validate'][] = 'tw_registration_role_validate';
+    }
+
+    // T2OM-86 
+    $uid = db_query("SELECT uid FROM {authmap} WHERE `module` = 'simplesamlphp_auth' AND `uid` = " . $form['#user']->uid)
+      ->fetchField();
+    if (!$uid) {
+      $form['field_hsin_actions']['#access'] = FALSE;
+    }
+    // T2OM-120: Hiding Federal region field from most users
+    if ($form['#user_category'] == 'employment_information') {
+      // T2OM-120: Auto assigning user Federal Region based on employment state
+      $form['#validate'][] = 'tw_user_history_fed_region_validate';
+      if (!user_has_role(3)) {
+        $form['profile_employment_information']['field_federal_region']['#access'] = FALSE;
+      } else {
+        $form['profile_employment_information']['field_federal_region']['#disabled'] = TRUE;
+      }
+    }
+  }
+
+  // HSIN redirect for profiles
+  if (in_array('HSIN Pre-Authenticated', $GLOBALS['user']->roles)) {
+    $form['#attached']['css'] = array(
+      drupal_get_path('module', 'tw_registration') . '/css/hsin.css',
+      drupal_get_path('module', 'tw_registration') . '/css/tw_registration.css',
+    );
+    drupal_add_js(drupal_get_path('module', 'tw_registration') . '/js/hsin.js');
+    $form['#attached']['js'][] = array(
+      drupal_get_path('module', 'tw_registration') . '/js/hsin.js',
+      drupal_get_path('module', 'tw_registration') . '/js/jquery.maskedinput.min.js',
+    );
+    switch ($form['#user_category']) {
+      case 'account':
+        $form['account']['current_pass']['#access'] = FALSE;
+        break;
+      case 'personal_information':
+        $form['profile_personal_information']['field_notes']['#access'] = FALSE;
+        break;
+      case 'indicate_evc':
+        $form['profile_indicate_evc']['field_notes']['#access'] = FALSE;
+        break;
+      case 'employment_information':
+        $form['profile_employment_information']['field_notes']['#access'] = FALSE;
+        break;
+      case 'privacy_information':
+        $form['profile_privacy_information']['field_notes']['#access'] = FALSE;
+        break;
+    }
+    $form['#submit'][] = 'tw_registration_hsin_profile_redirect';
+  }
+}
+
+function tw_registration_hsin_profile_redirect($form, &$form_state)
+{
+  if (isset($form['#user_category'])) {
+    $uid = $form['#user']->uid;
+    switch ($form['#user_category']) {
+      case 'account':
+        $form_state['redirect'] = 'user/' . $uid . '/edit/privacy_information';
+        break;
+      case 'privacy_information':
+        $form_state['redirect'] = 'user/' . $uid . '/edit/personal_information';
+        break;
+      case 'personal_information':
+        $form_state['redirect'] = 'user/' . $uid . '/edit/indicate_evc';
+        break;
+      case 'indicate_evc':
+        $form_state['redirect'] = 'user/' . $uid . '/edit/employment_information';
+        break;
+      case 'employment_information':
+        $form_state['redirect'] = 'hsin';
+        break;
+    }
+  }
+}
+
+function tw_registration_role_validate($form, &$form_state)
+{
+  $role_count = 0;
+  $vip_role = user_role_load_by_name('VIP');
+  //dpm($form_state['values']['roles']);
+  foreach ($form_state['values']['roles'] as $r) {
+    if ($r !== 0) {
+      if ($r !== TRUE) {
+        $role_count++;
+      }
+    }
+    // TRIP2-516: Checking for VIP role. If VIP role exists, need to ensure there is an additional role selected too.
+    if ($r === $vip_role->rid) {
+      // VIP role detected
+      if ($role_count < 2) {
+        form_set_error('account][roles', t('VIP user must have an additional role selected.'));
+      }
+    }
+  }
+  if ($role_count == 0) {
+    form_set_error('account][roles', t('User must have at least one role.'));
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function tw_registration_menu()
+{
+  $items['access_denied'] = array(
+    'title' => 'Access Denied',
+    'page callback' => 'tw_registration_access_denied_custom',
+    'access arguments' => array('access content'),
+  );
+  $items['thanks'] = array(
+    'title' => 'Thanks',
+    'page callback' => 'tw_registration_thanks',
+    'access arguments' => array('access homepage only'),
+  );
+  $items['admin/help-desk/registrations/resend'] = array(
+    'title' => 'Resend Email',
+    'page callback' => 'tw_registration_resend_email',
+    'access arguments' => array('access content'),
+    'file' => 'tw_registration.pages.inc',
+  );
+  $items['admin/help-desk/registrations/dna'] = array(
+    'title' => 'Do Not Approve',
+    'page callback' => 'tw_registration_dna',
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_registration.pages.inc',
+  );
+  $items['evc-verify'] = array(
+    'title' => 'EVC Contact Verification',
+    'page callback' => 'tw_registration_evc_verify',
+    'access callback' => true,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/help-desk/evc/updated'] = array(
+    'title' => 'EVC Updated',
+    'page callback' => 'tw_registration_evc_updated',
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_registration.pages.inc',
+  );
+  $items['admin/help-desk/evc-confirmation/approved'] = array(
+    'title' => 'EVC Approved',
+    'page callback' => 'tw_registration_evc_approved',
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_registration.pages.inc',
+  );
+  $items['admin/config/people/tw_emails'] = array(
+    'title' => 'TRIPwire System Email',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_registration_settings_form'),
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_registration.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/help-desk/helper'] = array(
+    'title' => 'Helper',
+    'page callback' => 'tw_registration_helper',
+    'access callback' => 'tw_registration_user_has_role',
+    'access arguments' =>  array('Help Desk', 'administrator'),
+    'file' => 'tw_registration.pages.inc',
+  );
+
+  $items['binding'] = array(
+    'title' => 'TRIPwire Profile Discovery',
+    'page callback' => 'tw_registration_binding',
+    'access callback' => true,
+    'file' => 'tw_registration.pages.inc',
+  );
+
+  $items['hsin'] = array(
+    'title' => 'TRIPwire Profile Discovery',
+    'page callback' => 'tw_registration_hsin_thanks',
+    'access callback' => true,
+    'file' => 'tw_registration.pages.inc',
+  );
+
+  $items['hsinlogout'] = array(
+    'title' => 'Redirecting to registration',
+    'page callback' => 'tw_registration_hsin_logout',
+    'access callback' => true,
+    'file' => 'tw_registration.pages.inc',
+  );
+
+  $items['hsin-authenticate'] = array(
+    'title' => 'Authenticate TripWire User',
+    'page callback' => 'tw_registration_hsin_user_verify',
+    'page arguments' => array('name', 2),
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_registration.pages.inc',
+  );
+
+  $items['mytripwire/subscriptions'] = array(
+    'title' => 'Redirect',
+    'page callback' => 'tw_registration_redirect',
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['user/%user/subscriptions'] = array(
+    'title' => t('My TRIPwire Subscriptions'),
+    'page callback' => 'tw_registration_subscriptions_redirect',
+    'access callback' => 'tw_registration_user_has_role',
+    'access arguments' =>  array('Help Desk', 'administrator', 'IT O&M'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/config/system/wn_subscribe'] = array(
+    'title' => 'Whats New Subscription',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_registration_wn_form'),
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_registration.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+
+  return $items;
+}
+
+/** 
+ * Custom callback for user having proper access
+ */
+
+function tw_registration_user_has_role()
+{
+  global $user;
+  $roles = func_get_args();
+  foreach ($roles as $role) {
+    if (in_array($role, $user->roles)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Custom callback function.
+ */
+function tw_registration_access_denied_custom()
+{
+  global $user;
+  if (!$user->uid && !(arg(0) == 'user' && !is_numeric(arg(1)))) {
+    $form = drupal_get_form('user_login_block');
+    $form['name']['#prefix'] = '<div id="login-message">You are not logged in.</div><div id="login-links"><a href="/user/register" class="login-link" id="register-link">I want to create an account</a></div>';
+    return $form;
+  }
+}
+
+/** 
+ * Custom callback to redirect users to My TRIPwire Subscriptions page
+ */
+
+function tw_registration_redirect()
+{
+  global $user;
+  drupal_goto('profile-my_tripwire_subscriptions/' . $user->uid . '/edit');
+}
+
+/** 
+ * Custom callback to redirect users to My TRIPwire Subscriptions page from User edit page
+ */
+
+function tw_registration_subscriptions_redirect()
+{
+  $url = $_SERVER['REQUEST_URI'];
+  $url = explode('/', $url);
+  drupal_goto('profile-my_tripwire_subscriptions/' . $url[2] . '/edit');
+}
+
+function tw_registration_mail($key, &$message, $params)
+{
+  switch ($key) {
+    case 'mymail':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Email Verification Due');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evcconfirmation':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Employment Verification Due');
+      $message['body'][] = $params['emailbody'][0];
+      $message['body'][] = 'To approve this user, click here: ' . $params['approve_link'];
+      $message['body'][] = 'To deny this user, click here: ' . $params['deny_link'];
+      break;
+    case 'evcactionrequired':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Employment Verification Due');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evcupdated':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire EVC Updated');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_init_reminder_accountholder':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Employment Verification Due Reminder');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_init_reminder':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Employment Verification Overdue');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_annual_verification':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Due');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_annual_verification_user':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Pending');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evcconfirmationreminder':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Initial Employment Verification Due');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_confirmation_reminder':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Pending Reminder');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_annual_nine_day_user':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Pending Reminder');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_nonresponse_user':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Non-Response');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_account_approved':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Account Approved');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'hsin_evc_account_approved':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Account Approved');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_denied':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Employment Verification Denied');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_nine':
+      //Set headers etc
+      $message['subject'] = t('EVC Confirmation Reminder');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_fourteen':
+      //Set headers etc
+      $message['subject'] = t('EVC Non-Response');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'do_not_approve':
+      //Set headers etc
+      $message['subject'] = t('Do Not Approve');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'inactivity_warning':
+      //Set headers etc
+      $message['subject'] = t('Account Inactivity Warning');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'evc_updated':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire EVC Updated');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'annual_evc_complete':
+      //Set headers etc
+      $message['subject'] = t('TRIPwire Annual Employment Verification Complete');
+      $message['body'] = $params['emailbody'];
+      break;
+    case 'wn_emails':
+      //Set headers etc
+      $message['subject'] = t("New What's New Subscription");
+      $message['body'] = $params['emailbody'];
+      break;
+  }
+}
+
+function tw_registration_thanks()
+{
+  if (!isset($_COOKIE['new_uid'])) {
+    drupal_goto('/');
+  }
+
+  $message = "Thanks for registering";
+  //global $user;
+  $fulluser = user_load($_COOKIE['new_uid']);
+  $terms = array();
+  if (isset($fulluser->field_user_status['und'])) {
+    foreach ($fulluser->field_user_status['und'] as $s) {
+      $term = taxonomy_term_load($s['tid']);
+      print("term: " . $term->name . " ");
+      $terms[] = $term->name;
+    }
+  }
+  if (!in_array('Awaiting Approval', $terms)) {
+    $url = user_pass_reset_url($fulluser) . '?gen=newuser';
+    watchdog('tw_registration', 'url is ' . $url, array(), WATCHDOG_INFO, NULL);
+    $acc_validate_body = variable_get('account_validation_email');
+    $acc_validate_body_val = array($acc_validate_body['value']);
+    $acc_validate_body_val['0'] = str_replace("[Verify Account Link]", $url, $acc_validate_body_val['0']);
+    $acc_validate_body_val['0'] = token_replace($acc_validate_body_val['0'], array('user' => $fulluser), array('sanitize' => FALSE, 'clear' => TRUE));
+    drupal_mail('tw_registration', 'mymail', $fulluser->mail, language_default(), $params = $params = array('emailbody' => $acc_validate_body_val), $from = NULL, $send = TRUE);
+    $format = '<p>Thank you for registering for TRIPwire, the Technical Resource for Incident Prevention. We are required to verify your email address, employment, and standing within your organization to ensure your suitability to have access to TRIPwire. You will receive an email momentarily confirming your email address. If you do not receive the email in your inbox, please check your spam folder and add tripwirehelp@dhs.gov to your address book.</p>
+
+      <p>For Outlook, if TRIPwire system emails are being sent to your spam folder complete the following steps:<br />
+      1. At the top of the screen, select Settings, Settings icon > Mail.<br />
+      2. Under Options, select Block or allow.<br />
+      3. Add tripwire.dhs.gov to “Safe senders”. Safe senders and recipients are domains and people whose email you don’t want diverted to your Junk Email folder.</p>
+
+      <p>For Gmail, if TRIPwire system emails are being sent to your spam folder complete the following steps:<br />
+      1. Check your spam or bulk mail folder.<br />
+      2. If the email isn’t there, add tripwirehelp@dhs.gov to your address book.<br />
+      3. Request a new verification email from the help desk</p>';
+    setcookie('my_message', sprintf($format), time() + (86400 * 30), "/");
+  } else {
+    setcookie('my_message', t("Thank you for verifying your email address.  Our service team will review your account for activation and contact you directly when you have been approved."), time() + (86400 * 30), "/");
+  }
+  module_load_include('pages.inc', 'user');
+  //user_logout();
+  drupal_goto('/', array('query' => array('cache' => REQUEST_TIME)));
+  return $message;
+}
+
+
+
+class TWRegistrationMailSystem extends MaillogMailSystem
+{
+  public function format(array $message)
+  {
+    $message['params']['format'] = 'text/html';
+    $message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
+    $message['body'] = implode("\n\n", $message['body']);
+    $message['body'] = drupal_wrap_mail($message['body']);
+    return $message;
+  }
+}
+
+function tw_registration_evc_due($uid, $mail, $evcmail, $updated = NULL)
+{
+  // Activate EVC due
+  // Check to see if this user is already in EVC table
+  $result = db_select('tw_registration_evc_email', 'c')
+    ->fields('c')
+    ->condition('uid', $uid)
+    ->execute()
+    ->fetchAll();
+  if (empty($result)) {
+    $fulluser = user_load($uid);
+    global $base_url;
+    $evc_timestamp = REQUEST_TIME;
+    $approve_link = $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve';
+    $deny_link = $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny';
+    $evc_conf_body = variable_get('evc_nine_day_email_field');
+    $evc_conf_body_val = array($evc_conf_body['value']);
+    $evc_conf_body_val['0'] = str_replace("[EVC Verified Link]", $approve_link, $evc_conf_body_val['0']);
+    $evc_conf_body_val['0'] = str_replace("[EVC Denied Link]", $deny_link, $evc_conf_body_val['0']);
+    $evc_conf_body_val['0'] = token_replace($evc_conf_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+    $evc_action_body = variable_get('evc_action_required_email_field');
+    $evc_action_body_val = array($evc_action_body['value']);
+    $evc_action_body_val['0'] = str_replace("[EVC Verified Link]", $approve_link, $evc_action_body_val['0']);
+    $evc_action_body_val['0'] = str_replace("[EVC Denied Link]", $deny_link, $evc_action_body_val['0']);
+    $evc_action_body_val['0'] = token_replace($evc_action_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+    $evc_timestamp = REQUEST_TIME;
+    $query = db_insert('tw_registration_evc_email')
+      ->fields(array(
+        'uid' => $uid,
+        'evc_hash' => $evc_timestamp,
+        'verification_date' => NULL,
+        'verification_status' => 0,
+      ))
+      ->execute();
+    drupal_mail('tw_registration', 'evcconfirmationreminder', $evcmail, language_default(), $params = array('approve_link' => $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve', 'deny_link' => 'http://' . $_SERVER['SERVER_NAME'] . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny', 'homepage' => url('http://tripwire.dhs.gov'), 'emailbody' => $evc_conf_body_val), $from = NULL, $send = TRUE);
+    drupal_mail('tw_registration', 'evcactionrequired', $mail, language_default(), $params = array('approve_link' => $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve', 'deny_link' => 'http://' . $_SERVER['SERVER_NAME'] . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny', 'homepage' => url('http://tripwire.dhs.gov'), 'emailbody' => $evc_action_body_val), $from = NULL, $send = TRUE);
+  }
+  if (!is_null($updated) && !empty($result)) {
+    $evc_timestamp = REQUEST_TIME;
+    $fulluser = user_load($uid);
+    global $base_url;
+    $approve_link = $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve';
+    $deny_link = $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny';
+    $evc_conf_body = variable_get('evc_nine_day_email_field');
+    $evc_conf_body_val = array($evc_conf_body['value']);
+    $evc_conf_body_val['0'] = str_replace("[EVC Verified Link]", $approve_link, $evc_conf_body_val['0']);
+    $evc_conf_body_val['0'] = str_replace("[EVC Denied Link]", $deny_link, $evc_conf_body_val['0']);
+    $evc_conf_body_val['0'] = token_replace($evc_conf_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+    $evc_action_body = variable_get('evc_action_required_email_field');
+    $evc_action_body_val = array($evc_action_body['value']);
+    $evc_action_body_val['0'] = str_replace("[EVC Verified Link]", $approve_link, $evc_action_body_val['0']);
+    $evc_action_body_val['0'] = str_replace("[EVC Denied Link]", $deny_link, $evc_action_body_val['0']);
+    $evc_action_body_val['0'] = token_replace($evc_action_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+    $query = db_update('tw_registration_evc_email')
+      ->fields(array('evc_hash' => $evc_timestamp))
+      ->condition('uid', $uid)
+      ->execute();
+    if ($updated == 'annual') {
+      $query = db_update('tw_registration_evc_email')
+        ->fields(array('verification_date' => NULL, 'nineday_date' => NULL, 'fourteenday_date' => NULL, 'verification_status' => '0'))
+        ->condition('uid', $uid)
+        ->execute();
+      module_load_include('pages.inc', 'tw_registration');
+      tw_registration_helper($uid, 'evc_annual_pending');
+    } else {
+      drupal_mail('tw_registration', 'evcconfirmationreminder', $mail, language_default(), $params = array('approve_link' => $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve', 'deny_link' => 'http://' . $_SERVER['SERVER_NAME'] . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny', 'homepage' => url('http://tripwire.dhs.gov'), 'emailbody' => $evc_action_body_val), $from = NULL, $send = TRUE);
+      drupal_mail('tw_registration', 'evcactionrequired', $evcmail, language_default(), $params = array('approve_link' => $base_url . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/approve', 'deny_link' => 'http://' . $_SERVER['SERVER_NAME'] . '/evc-verify/' . $uid . '/' . $evc_timestamp . '/deny', 'homepage' => url('http://tripwire.dhs.gov'), 'emailbody' => $evc_conf_body_val), $from = NULL, $send = TRUE);
+    }
+  }
+}
+
+function tw_registration_init()
+{
+  if (strpos($_SERVER['REQUEST_URI'], '/user/reset') !== false) {
+    if (isset($_GET['gen'])) {
+      if ($_GET['gen'] == 'newuser' || $_GET['gen'] == 'resend') {
+        $url = $_SERVER['REQUEST_URI'];
+        $url = explode('/', $url);
+        $fulluser = user_load($url[3]);
+        $role = user_role_load_by_name('Awaiting Approval');
+        $term = taxonomy_get_term_by_name('Awaiting Approval', 'user_status');
+        $term = array_shift($term);
+        user_multiple_role_edit(array($fulluser->uid), 'add_role', $role->rid);
+        $fulluser->field_user_status['und'][0]['tid'] = $term->tid;
+        user_save($fulluser);
+      }
+    }
+  }
+
+
+  if (!empty($_COOKIE['my_message'])) {
+    drupal_set_message($_COOKIE['my_message'], 'warning', FALSE);
+    setcookie('my_message', '', time() - 3600);
+  }
+
+  // Allows for Pre-authenticated users to access homepage only
+  if (isset($GLOBALS['user']->roles)) {
+    if (in_array('Pre-Authenticated', $GLOBALS['user']->roles) && current_path() !== 'thanks') {
+      //drupal_goto('thanks');
+    }
+  }
+}
+
+function tw_registration_evc_send($form, &$form_state)
+{
+  $fulluser = user_load_by_name($form_state['values']['name']);
+  // Removing this code because it is done in the _init hook
+  // $role = user_role_load_by_name('Awaiting Approval');
+  $term = taxonomy_get_term_by_name('Awaiting Approval', 'user_status');
+  $term = array_shift($term);
+  // user_multiple_role_edit(array($fulluser->uid), 'add_role', $role->rid);
+  $fulluser->field_user_status['und'][0]['tid'] = $term->tid;
+  user_save($fulluser);
+  $profile = profile2_load_by_user($fulluser->uid, 'indicate_evc');
+  tw_registration_evc_due($fulluser->uid, $fulluser->mail, $profile->field_verification_contact_email['und'][0]['safe_value'], REQUEST_TIME);
+}
+
+function tw_registration_node_access($node, $op, $account)
+{
+  if (user_access('access homepage only')) {
+    if (drupal_get_path_alias() == 'home') {
+      return NODE_ACCESS_ALLOW;
+    }
+  }
+}
+
+/**
+ * Implement hook_user()
+ *
+ */
+function tw_registration_user_update(&$edit, $account)
+{
+  if (isset($edit['pass'])) {
+    if (isset($edit['original']->pass)) {
+      if ($edit['pass'] !== $edit['original']->pass) {
+        //rules_invoke_event('tw_registration_validated', $account);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function tw_registration_permission()
+{
+  return array(
+    'access homepage only' => array(
+      'title' => t('Access homepage only'),
+    )
+  );
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function tw_registration_user_insert(&$edit, $account, $category)
+{
+  // Checking for a Feeds generated user import. If so, skipping this because it really b0rks things during import;
+  if (isset($edit['feeds_item'])) {
+    return;
+  }
+  if (isset($account->is_new) && !empty($account->is_new)) {
+    //dpm($account);
+    setcookie('new_uid', $account->uid, time() + (86400 * 30), "/");
+    // Query the user groups to get a count
+    $groupA = taxonomy_get_term_by_name('User Group A', 'user_group');
+    $groupA = array_shift($groupA);
+    $groupB = taxonomy_get_term_by_name('User Group B', 'user_group');
+    $groupB = array_shift($groupB);
+    $groupAtid = $groupA->tid;
+    $groupBtid = $groupB->tid;
+
+    $pre_authenticated_role = user_role_load_by_name('Pre-Authenticated');
+    $awaiting_approval_role = user_role_load_by_name('Awaiting Approval');
+
+    $groupAquery = "SELECT users.name AS users_name, users.uid AS uid, users.created AS users_created
+    FROM {users} users
+    LEFT JOIN {users_roles} users_roles ON users.uid = users_roles.uid AND (users_roles.rid = '" . $pre_authenticated_role->rid . "' OR users_roles.rid = '" . $awaiting_approval_role->rid . "')
+    INNER JOIN {field_data_field_user_group} field_data_field_user_group ON users.uid = field_data_field_user_group.entity_id AND (field_data_field_user_group.entity_type = 'user' AND field_data_field_user_group.deleted = '0')
+    WHERE (( (users.status <> '0') AND (field_data_field_user_group.field_user_group_tid = '" . $groupAtid . "') ))";
+    $groupAresult = db_query($groupAquery);
+    $groupAcount = $groupAresult->fetchCol();
+
+    $groupBquery = "SELECT users.name AS users_name, users.uid AS uid, users.created AS users_created
+    FROM {users} users
+    LEFT JOIN {users_roles} users_roles ON users.uid = users_roles.uid AND (users_roles.rid = '" . $pre_authenticated_role->rid . "' OR users_roles.rid = '" . $awaiting_approval_role->rid . "')
+    INNER JOIN {field_data_field_user_group} field_data_field_user_group ON users.uid = field_data_field_user_group.entity_id AND (field_data_field_user_group.entity_type = 'user' AND field_data_field_user_group.deleted = '0')
+    WHERE (( (users.status <> '0') AND (field_data_field_user_group.field_user_group_tid = '" . $groupBtid . "') ))";
+    $groupBresult = db_query($groupBquery);
+    $groupBcount = $groupBresult->fetchCol();
+
+    // Compare counts and assign user to one of the groups
+    //dpm("Group A is at " . count($groupAcount));
+    //dpm("Group B is at " . count($groupBcount));
+    if ($groupAcount > $groupBcount) {
+      $account->field_user_group['und'][0]['tid'] = $groupBtid;
+    } else {
+      $account->field_user_group['und'][0]['tid'] = $groupAtid;
+    }
+
+    // Assigning new user to Pre-Authenticated role
+    $account->roles[$pre_authenticated_role->rid] = $pre_authenticated_role->name;
+
+    //TWDEV-96: Adding HSIN role to user because they tried to use HSIN to set up an account
+    if (isset($_COOKIE['hsinorigin'])) {
+      $account->roles[43] = 'HSIN Pre-Authenticated';
+      $account->roles[42] = 'HSIN';
+      //TWDEV-96: Delete the user Drupal created earlier when the user logged in with their HSIN credentials
+      // First, unbind the Drupal account from HSIN
+      $hsinuid = $_COOKIE['hsinorigin'];
+      db_delete('authmap')
+        ->condition('uid', $hsinuid)
+        ->condition('module', 'simplesamlphp_auth')
+        ->execute();
+      //Next, delete the user simplesaml created
+      user_delete($hsinuid);
+      //Remove HSINorigin cookie since we do not need it anymore
+      user_cookie_delete('hsinorigin');
+    }
+
+    $account->is_new = 0;
+    user_save($account);
+  }
+}
+
+/*
+ * The function handling the EVC Verification page. 
+ */
+
+function tw_registration_evc_verify()
+{
+  $url = $_SERVER['REQUEST_URI'];
+  $url = explode('/', $url);
+  if (isset($url[2]) && isset($url[3])) {
+    $result = db_select('tw_registration_evc_email', 'c')
+      ->fields('c')
+      ->condition('uid', $url[2])
+      ->condition('evc_hash', $url[3])
+      ->condition('verification_status', 0)
+      ->execute()
+      ->fetchAll();
+
+    if (!empty($result)) {
+      if ($url[4] == 'approve') {
+        $result = array_shift($result);
+        $query = db_update('tw_registration_evc_email')
+          ->fields(array('verification_date' => REQUEST_TIME, 'verification_status' => 1))
+          ->condition('uid', $url[2])
+          ->execute();
+        $term = taxonomy_get_term_by_name('EVC Vetted', 'evc_status');
+        $term = array_shift($term);
+        $fulluser = user_load($url[2]);
+        $fulluser->field_evc_status['und'][0]['tid'] = $term->tid;
+        user_save($fulluser);
+        $profile2 = profile2_by_uid_load($fulluser->uid, 'indicate_evc');
+        // TRIP2-543: Disabling sending email
+        //$evc_conf_body = variable_get('evc_approved_email_field');
+        //$evc_conf_body_val = array($evc_conf_body['value']);
+        //$evc_conf_body_val['0'] = token_replace($evc_conf_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+        //drupal_mail('tw_registration', 'evc_account_approved', $fulluser->mail, language_default(), $params = array('emailbody' => $evc_conf_body_val), $from = NULL, $send = TRUE);
+        $data = array(
+          'uid' => $fulluser->uid,
+          'type' => 'evc',
+          'log' => 'Username ' . $fulluser->name . ' had their EVC verified by ' . $profile2->field_employment_verification_co['und'][0]['value'],
+          'timestamp' => REQUEST_TIME,
+          'name' => $fulluser->name,
+          'account_state' => $fulluser->status,
+          'current_account_status' => '',
+          'old_account_status'  => '',
+          'account_type' => '',
+        );
+        drupal_write_record('tw_user_history', $data);
+        $page_content = '<p>Verification for this user has been received, this selection will be used to process their account registration.<br> 
+        Thank you for your dedication and help. If you have questions please contact the</p>
+        <p>TRIPwire Help Desk <br>
+        Monday - Friday 8 AM to 5 PM EST <br>
+        Phone: 1-866-987-9473 (Toll-free) <br>
+        Email: tripwirehelp@dhs.gov</p>';
+      } elseif ($url[4] == 'deny') {
+        $result = array_shift($result);
+        $query = db_update('tw_registration_evc_email')
+          ->fields(array('verification_date' => REQUEST_TIME, 'verification_status' => 0, 'evc_hash' => NULL))
+          ->condition('uid', $url[2])
+          ->execute();
+        $term = taxonomy_get_term_by_name('EVC Denied', 'evc_status');
+        $term = array_shift($term);
+        $fulluser = user_load($url[2]);
+        $fulluser->field_evc_status['und'][0]['tid'] = $term->tid;
+        user_save($fulluser);
+        $profile2 = profile2_by_uid_load($fulluser->uid, 'indicate_evc');
+        $evc_conf_body = variable_get('evc_denied_email_field');
+        $evc_conf_body_val = array($evc_conf_body['value']);
+        $evc_conf_body_val['0'] = token_replace($evc_conf_body_val['0'], array('user' => $fulluser), array('clear' => TRUE,));
+        drupal_mail('tw_registration', 'evc_denied', $fulluser->mail, language_default(), $params = array('emailbody' => $evc_conf_body_val), $from = NULL, $send = TRUE);
+        $data = array(
+          'uid' => $fulluser->uid,
+          'type' => 'evc',
+          'log' => 'Username ' . $fulluser->name . ' had their EVC denied by their EVC contact, ' .  $profile2->field_employment_verification_co['und'][0]['value'],
+          'timestamp' => REQUEST_TIME,
+          'name' => $fulluser->name,
+          'account_state' => $fulluser->status,
+          'current_account_status' => '',
+          'old_account_status'  => '',
+          'account_type' => '',
+        );
+        drupal_write_record('tw_user_history', $data);
+        $page_content = '<p>Verification for this user has been received, this selection will be used to process their account registration.<br> 
+        Thank you for your dedication and help. If you have questions please contact the</p>
+        <p>TRIPwire Help Desk <br>
+        Monday - Friday 8 AM to 5 PM EST <br>
+        Phone: 1-866-987-9473 (Toll-free) <br>
+        Email: tripwirehelp@dhs.gov</p>';
+      }
+    } else {
+      $page_content = '<p>Verification for this user was incorrectly received, this selection will be disregarded. <br>
+      Thank you for your dedication and help. If you have questions please contact the:</p>
+      <p>TRIPwire Help Desk <br>
+          Monday - Friday 8 AM to 5 PM EST <br>
+          Phone: 1-866-987-9473 (Toll-free) <br>
+          Email: tripwirehelp@dhs.gov</p>';
+    }
+  } else {
+    $page_content = '<p>Verification for this user was incorrectly received, this selection will be disregarded. <br>
+    Thank you for your dedication and help. If you have questions please contact the:</p>
+    <p>TRIPwire Help Desk <br>
+        Monday - Friday 8 AM to 5 PM EST <br>
+        Phone: 1-866-987-9473 (Toll-free) <br>
+        Email: tripwirehelp@dhs.gov</p>';
+  }
+  return $page_content;
+}
+
+function tw_registration_tokens_alter(array &$replacements, array $context)
+{
+  // T2OM-84: Adding spaces to first name and title tokens
+  if ($context['type'] == 'profile2') {
+    //dpm($replacements);
+    if (isset($replacements['[user:profile-personal-information:field-first-name]'])) {
+      $replacements['[user:profile-personal-information:field-first-name]'] = str_replace(' ', '', $replacements['[user:profile-personal-information:field-first-name]']) . ' ';
+    }
+    if (isset($replacements['[user:profile-personal-information:field-title]'])) {
+      $replacements['[user:profile-personal-information:field-title]'] = str_replace(' ', '', $replacements['[user:profile-personal-information:field-title]']) . ' ';
+    }
+  }
+}
+
+function tw_registration_mgmt_cron()
+{
+  if (date('H', time()) == 1) {
+    module_load_include('check.inc', 'tw_registration');
+    watchdog('tw_registration', 'Running EVC timer script', array(), WATCHDOG_INFO, NULL);
+    tw_registration_check_users();
+  }
+
+  if (date('H', time()) == 4) {
+    module_load_include('check.inc', 'tw_registration');
+    watchdog('tw_registration', 'Running annual EVC check script', array(), WATCHDOG_INFO, NULL);
+    tw_registration_check_evc();
+  }
+}
+
+function tw_registration_views_data()
+{
+
+  $data['tw_registration_evc_email']['table']['group'] = t('EVC Mail');
+
+  $data['tw_registration_evc_email']['table']['base'] = array(
+    'field' => 'uid',
+    'title' => t('EVC Mail'),
+    'help' => t('Stores EVC email data.'),
+    'weight' => -10,
+  );
+
+  $data['tw_registration_evc_email']['table']['join'] = array(
+    'users' => array(
+      'left_field' => 'uid',
+      'field' => 'uid',
+    ),
+  );
+  $data['tw_registration_evc_email']['uid']['relationship'] = array(
+    'title' => t('User'),
+    'help' => t('Relate User.'),
+    'id' => 'standard',
+    'base' => 'users_field_data',
+    'base field' => 'uid',
+    'field' => 'uid',
+    'label' => t('User'),
+  );
+
+  $data['tw_registration_evc_email']['uid'] = array(
+    'title' => t('UID'),
+    'help' => t('User ID that references User account.'),
+    'relationship' => array(
+      'base' => 'users',
+      'base field' => 'uid', // The name of the field on the joined table.
+      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      'handler' => 'views_handler_relationship',
+      'label' => t('EVC UID'),
+    ),
+  );
+
+
+
+  $data['tw_registration_evc_email']['evc_hash'] = array(
+    'title' => t('EVC Hash'),
+    'help' => t('String of timestamp for URL construction of EVC verification.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+    'argument' => array(
+      'handler' => 'date_views_argument_handler',
+    ),
+  );
+
+
+  $data['tw_registration_evc_email']['verification_date'] = array(
+    'title' => t('Verification Date'),
+    'help' => t('Date the EVC verified the contact.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['tw_registration_evc_email']['nineday_date'] = array(
+    'title' => t('Nine Day Email Timestamp'),
+    'help' => t('Date the 9-day post due reminder was sent'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['tw_registration_evc_email']['fourteenday_date'] = array(
+    'title' => t('Fourteen Day Email Timestamp'),
+    'help' => t('Date the 14-day post due reminder was sent.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['tw_registration_evc_email']['verification_status'] = array(
+    'title' => t('Verification Status'),
+    'help' => t('Boolean field if user has been verified.'),
+    'field' => array(
+      'handler' => 'views_handler_field_boolean',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_boolean_operator',
+      'label' => t('Published'),
+      'type' => 'yes-no',
+      'use equal' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+
+  return $data;
+}
+function tw_registration_menu_local_tasks_alter(&$data, $router_item, $root_path)
+{
+  $urls = array('user/%/edit/privacy_information', 'user/%/edit/personal_information', 'user/%/edit/employment_information', 'user/%/edit/indicate_evc');
+  if (in_array($root_path, $urls)) {
+    drupal_add_js(drupal_get_path('module', 'tw_registration') . '/js/hsin_alt.js', 'file');
+  }
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function tw_registration_action_info()
+{
+  return array(
+    'tw_registration_unblock_user_action' => array(
+      'label' => t('Unblock the user'),
+      'type' => 'user',
+      'configurable' => FALSE,
+      'triggers' => array('any'),
+    ),
+  );
+}
+
+/**
+ * Unblocks a user, defaulting to the current user.
+ *
+ * @ingroup actions
+ */
+function tw_registration_unblock_user_action($entity, $context = array())
+{
+  // First priority: If there is a $entity->uid, unblock that user.
+  // This is most likely a user object or the author if a node or comment.
+  if (isset($entity->uid)) {
+    $uid = $entity->uid;
+  }
+  // Otherwise get user ID from the context.
+  elseif (isset($context['uid'])) {
+    $uid = $context['uid'];
+  }
+  $account = user_load($uid);
+  $edit['status'] = 1;
+  $edit['field_user_status'][LANGUAGE_NONE][0]['tid'] = 4771;
+  $edit['field_account_states'][LANGUAGE_NONE][0]['tid'] = 4751;
+  user_save($account, $edit);
+}

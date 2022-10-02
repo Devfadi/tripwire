@@ -1,0 +1,716 @@
+<?php
+/**
+ * Implements hook_block_info().
+ */
+function tw_blastcalc_block_info() {
+  $blocks = array();
+  $blocks['blastcalc_block'] = array(
+    'info' => t('Civilian Evacuation Distance Calculator'),
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function tw_blastcalc_block_view($delta='') {
+  $block = array();
+  switch ($delta) {
+    case 'blastcalc_block':
+      $block['subject'] = t('');
+      $block['content'] = array(
+        '#markup' => blastcalc_block_contents(),
+        '#attached' => array(
+          'css' => array(
+            drupal_get_path('module', 'tw_blastcalc') . '/css/tw_blastcalc.css',
+          ),
+          'js' => array(
+            drupal_get_path('module', 'tw_blastcalc') . '/js/tw_blastcalc.js',
+          ),
+        ),
+      );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * custom html block
+ * @return string
+ */
+function blastcalc_block_contents() {
+  $html = '
+    <table  border="0" cellspacing="0" cellpadding="0" width="100%" class="tableBorderA blast-calc" >
+<form id="formc" name="formc" method="post" action=""> 
+
+<div style="display:none">
+</div>
+<div id="panel1" style="display:block">
+<tr> 
+	<td colspan="7" valign="left" >
+		<div><i>Calculate the recommended minimum distance to evacuate when presented with a suspicious package or bomb threat. Seek distance and cover - they are the best means to reduce the risk of injury. If the threat material is unidentifiable, select "UNKNOWN" for explosive type and then select its weight.
+		</i>
+		</div></br>  
+	</td>
+</tr>
+ 
+<tr>
+<td colspan="1"><p class="a1"><strong>Select explosive type:</strong></p>  
+</td>
+<td width="25%">
+<select name="selectedExplosive" id="selectedExplosive" size="1" tabindex="1" class="ee125" style="width:230px">
+<option value="0" selected>Please Select</option>
+<option value="1">AMATOL</option>
+<option value="2">AMMONAL</option>
+<option value="3">BLACK POWDER</option>
+<option value="4">C3</option>
+<option value="5">C4</option>
+<option value="6">CH6</option>
+<option value="7">COMP A3</option>
+<option value="8">COMP A5</option>
+<option value="9">COMP B</option>
+<option value="10">COMP C4</option>
+<option value="11">COMPOSITE RKT PROP</option>
+<option value="12">CYCLOTOL</option>
+<option value="13">DBX</option>
+<option value="14">DEHN</option>
+<option value="15">DXN1</option>
+<option value="16">DYNAMITE(MIL)</option>
+<option value="17">EDNA</option>
+<option value="18">EDNATOL</option>
+<option value="19">FLASH POWDER</option>
+<option value="20">GLTN</option>
+<option value="21">H6</option>
+<option value="22">HBX1</option>
+<option value="23">HBX3</option>
+<option value="24">HMX</option>
+<option value="25">HTA3</option>
+<option value="26">LEAD AZIDE</option>
+<option value="27">LX04</option>
+<option value="28">LX07</option>
+<option value="29">LX09</option>
+<option value="30">LX10</option>
+<option value="31">LX11</option>
+<option value="32">LX14</option>
+<option value="33">MERCURY FULMINATE</option>
+<option value="34">MINOL2</option>
+<option value="35">MTN</option>
+<option value="36">NC PBX108</option>
+<option value="37">NG</option>
+<option value="38">NITROGUANADINE</option>
+<option value="39">OCTOL PICRIC ACID</option>
+<option value="40">PBX116</option>
+<option value="41">PBX9010</option>
+<option value="42">PBX9011</option>
+<option value="43">PBX9205</option>
+<option value="44">PBXC203</option>
+<option value="45">PBXN-104</option>
+<option value="46">PBXN-3 TETRYL</option>
+<option value="47">PETN</option>
+<option value="48">PICRITE</option>
+<option value="49">PLX</option>
+<option value="50">PXT1</option>
+<option value="51">PXT2</option>
+<option value="52">RDX</option>
+<option value="53">TETRYTOL</option>
+<option value="54" >TNET-B</option>
+<option value="55" >TNT</option>
+<option value="56">TORPEX</option>
+<option value="57">UNKNOWN</option>
+ 
+</select> 
+</td>
+</tr>
+<tr>
+<td colspan="1" align="left">
+	<p class="a1"><strong>Select weight of explosive (lbs):</strong></p> 
+</td>
+<td width="25%">
+<table class="hidden-table" width="100%" border="0"> 
+<select name="selectedLbs" id="selectedLbs" size="1" tabindex="2" class="ee101" style="width:109px">
+<option value="0" selected>Please Select</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5" >5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+<option value="16">16</option>
+<option value="17">17</option>
+<option value="18">18</option>
+<option value="19">19</option>
+<option value="20">20</option>
+<option value="21">21</option>
+<option value="22">22</option>
+<option value="23">23</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="26">26</option>
+<option value="27">27</option>
+<option value="28">28</option>
+<option value="29">29</option>
+<option value="30">30</option>
+<option value="31">31</option>
+<option value="32">32</option>
+<option value="33">33</option>
+<option value="34">34</option>
+<option value="35">35</option>
+<option value="36">36</option>
+<option value="37">37</option>
+<option value="38">38</option>
+<option value="39">39</option>
+<option value="40">40</option>
+<option value="41">41</option>
+<option value="42">42</option>
+<option value="43">43</option>
+<option value="44">44</option>
+<option value="45">45</option>
+<option value="46">46</option>
+<option value="47">47</option>
+<option value="48">48</option>
+<option value="49">49</option>
+<option value="50">50</option>
+<option value="51">51</option>
+<option value="52">52</option>
+<option value="53">53</option>
+<option value="54">54</option>
+<option value="55">55</option>
+<option value="56">56</option>
+<option value="57">57</option>
+<option value="58">58</option>
+<option value="59">59</option>
+<option value="60">60</option>
+<option value="61">61</option>
+<option value="62">62</option>
+<option value="63">63</option>
+<option value="64">64</option>
+<option value="65">65</option>
+<option value="66">66</option>
+<option value="67">67</option>
+<option value="68">68</option>
+<option value="69">69</option>
+<option value="70">70</option>
+<option value="71">71</option>
+<option value="72">72</option>
+<option value="73">73</option>
+<option value="74">74</option>
+<option value="75">75</option>
+<option value="76">76</option>
+<option value="77">77</option>
+<option value="78">78</option>
+<option value="79">79</option>
+<option value="80">80</option>
+<option value="81">81</option>
+<option value="82">82</option>
+<option value="83">83</option>
+<option value="84">84</option>
+<option value="85">85</option>
+<option value="86">86</option>
+<option value="87">87</option>
+<option value="88">88</option>
+<option value="89">89</option>
+<option value="90">90</option>
+<option value="91">91</option>
+<option value="92">92</option>
+<option value="93">93</option>
+<option value="94">94</option>
+<option value="95">95</option>
+<option value="96">96</option>
+<option value="97">97</option>
+<option value="98">98</option>
+<option value="99">99</option>
+<option value="100">100</option>
+<option value="105">105</option>
+<option value="110">110</option>
+<option value="115">115</option>
+<option value="120">120</option>
+<option value="125">125</option>
+<option value="130">130</option>
+<option value="135">135</option>
+<option value="140">140</option>
+<option value="145">145</option>
+<option value="150">150</option>
+<option value="155">155</option>
+<option value="160">160</option>
+<option value="165">165</option>
+<option value="170">170</option>
+<option value="175">175</option>
+<option value="180">180</option>
+<option value="185">185</option>
+<option value="190">190</option>
+<option value="195">195</option>
+<option value="200">200</option>
+<option value="210">210</option>
+<option value="220">220</option>
+<option value="230">230</option>
+<option value="240">240</option>
+<option value="250">250</option>
+<option value="260">260</option>
+<option value="270">270</option>
+<option value="280">280</option>
+<option value="290">290</option>
+<option value="300">300</option>
+<option value="310">310</option>
+<option value="320">320</option>
+<option value="330">330</option>
+<option value="340">340</option>
+<option value="350">350</option>
+<option value="360">360</option>
+<option value="370">370</option>
+<option value="380">380</option>
+<option value="390">390</option>
+<option value="400">400</option>
+<option value="410">410</option>
+<option value="420">420</option>
+<option value="430">430</option>
+<option value="440">440</option>
+<option value="450">450</option>
+<option value="460">460</option>
+<option value="470">470</option>
+<option value="480">480</option>
+<option value="490">490</option>
+<option value="500">500</option>
+<option value="525">525</option>
+<option value="550">550</option>
+<option value="575">575</option>
+<option value="600">600</option>
+<option value="625">625</option>
+<option value="650">650</option>
+<option value="675">675</option>
+<option value="700">700</option>
+<option value="725">725</option>
+<option value="750">750</option>
+<option value="775">775</option>
+<option value="800">800</option>
+<option value="825">825</option>
+<option value="850">850</option>
+<option value="875">875</option>
+<option value="900">900</option>
+<option value="925">925</option>
+<option value="950">950</option>
+<option value="975">975</option>
+<option value="1000">1000</option>
+<option value="1025">1025</option>
+<option value="1050">1050</option>
+<option value="1075">1075</option>
+<option value="1100">1100</option>
+<option value="1125">1125</option>
+<option value="1150">1150</option>
+<option value="1175">1175</option>
+<option value="1200">1200</option>
+<option value="1225">1225</option>
+<option value="1250">1250</option>
+<option value="1275">1275</option>
+<option value="1300">1300</option>
+<option value="1325">1325</option>
+<option value="1350">1350</option>
+<option value="1375">1375</option>
+<option value="1400">1400</option>
+<option value="1425">1425</option>
+<option value="1450">1450</option>
+<option value="1475">1475</option>
+<option value="1500">1500</option>
+<option value="1525">1525</option>
+<option value="1550">1550</option>
+<option value="1575">1575</option>
+<option value="1600">1600</option>
+<option value="1625">1625</option>
+<option value="1650">1650</option>
+<option value="1675">1675</option>
+<option value="1700">1700</option>
+<option value="1725">1725</option>
+<option value="1750">1750</option>
+<option value="1775">1775</option>
+<option value="1800">1800</option>
+<option value="1825">1825</option>
+<option value="1850">1850</option>
+<option value="1875">1875</option>
+<option value="1900">1900</option>
+<option value="1925">1925</option>
+<option value="1950">1950</option>
+<option value="1975">1975</option>
+<option value="2000">2000</option>
+<option value="2025">2025</option>
+<option value="2050">2050</option>
+<option value="2075">2075</option>
+<option value="2100">2100</option>
+<option value="2125">2125</option>
+<option value="2150">2150</option>
+<option value="2175">2175</option>
+<option value="2200">2200</option>
+<option value="2225">2225</option>
+<option value="2250">2250</option>
+<option value="2275">2275</option>
+<option value="2300">2300</option>
+<option value="2325">2325</option>
+<option value="2350">2350</option>
+<option value="2375">2375</option>
+<option value="2400">2400</option>
+<option value="2425">2425</option>
+<option value="2450">2450</option>
+<option value="2475">2475</option>
+<option value="2500">2500</option>
+<option value="2525">2525</option>
+<option value="2550">2550</option>
+<option value="2575">2575</option>
+<option value="2600">2600</option>
+<option value="2625">2625</option>
+<option value="2650">2650</option>
+<option value="2675">2675</option>
+<option value="2700">2700</option>
+<option value="2725">2725</option>
+<option value="2750">2750</option>
+<option value="2775">2775</option>
+<option value="2800">2800</option>
+<option value="2825">2825</option>
+<option value="2850">2850</option>
+<option value="2875">2875</option>
+<option value="2900">2900</option>
+<option value="2925">2925</option>
+<option value="2950">2950</option>
+<option value="2975">2975</option>
+<option value="3000">3000</option>
+<option value="3025">3025</option>
+<option value="3050">3050</option>
+<option value="3075">3075</option>
+<option value="3100">3100</option>
+<option value="3125">3125</option>
+<option value="3150">3150</option>
+<option value="3175">3175</option>
+<option value="3200">3200</option>
+<option value="3225">3225</option>
+<option value="3250">3250</option>
+<option value="3275">3275</option>
+<option value="3300">3300</option>
+<option value="3325">3325</option>
+<option value="3350">3350</option>
+<option value="3375">3375</option>
+<option value="3400">3400</option>
+<option value="3425">3425</option>
+<option value="3450">3450</option>
+<option value="3475">3475</option>
+<option value="3500">3500</option>
+<option value="3525">3525</option>
+<option value="3550">3550</option>
+<option value="3575">3575</option>
+<option value="3600">3600</option>
+<option value="3625">3625</option>
+<option value="3650">3650</option>
+<option value="3675">3675</option>
+<option value="3700">3700</option>
+<option value="3725">3725</option>
+<option value="3750">3750</option>
+<option value="3775">3775</option>
+<option value="3800">3800</option>
+<option value="3825">3825</option>
+<option value="3850">3850</option>
+<option value="3875">3875</option>
+<option value="3900">3900</option>
+<option value="3925">3925</option>
+<option value="3950">3950</option>
+<option value="3975">3975</option>
+<option value="4000">4000</option>
+<option value="4025">4025</option>
+<option value="4050">4050</option>
+<option value="4075">4075</option>
+<option value="4100">4100</option>
+<option value="4125">4125</option>
+<option value="4150">4150</option>
+<option value="4175">4175</option>
+<option value="4200">4200</option>
+<option value="4225">4225</option>
+<option value="4250">4250</option>
+<option value="4275">4275</option>
+<option value="4300">4300</option>
+<option value="4325">4325</option>
+<option value="4350">4350</option>
+<option value="4375">4375</option>
+<option value="4400">4400</option>
+<option value="4425">4425</option>
+<option value="4450">4450</option>
+<option value="4475">4475</option>
+<option value="4500">4500</option>
+<option value="4525">4525</option>
+<option value="4550">4550</option>
+<option value="4575">4575</option>
+<option value="4600">4600</option>
+<option value="4625">4625</option>
+<option value="4650">4650</option>
+<option value="4675">4675</option>
+<option value="4700">4700</option>
+<option value="4725">4725</option>
+<option value="4750">4750</option>
+<option value="4775">4775</option>
+<option value="4800">4800</option>
+<option value="4825">4825</option>
+<option value="4850">4850</option>
+<option value="4875">4875</option>
+<option value="4900">4900</option>
+<option value="4925">4925</option>
+<option value="4950">4950</option>
+<option value="4975">4975</option>
+<option value="5000">5000</option>
+<option value="5050">5050</option>
+<option value="5100">5100</option>
+<option value="5150">5150</option>
+<option value="5200">5200</option>
+<option value="5250">5250</option>
+<option value="5300">5300</option>
+<option value="5350">5350</option>
+<option value="5400">5400</option>
+<option value="5450">5450</option>
+<option value="5500">5500</option>
+<option value="5550">5550</option>
+<option value="5600">5600</option>
+<option value="5650">5650</option>
+<option value="5700">5700</option>
+<option value="5750">5750</option>
+<option value="5800">5800</option>
+<option value="5850">5850</option>
+<option value="5900">5900</option>
+<option value="5950">5950</option>
+<option value="6000">6000</option>
+<option value="6050">6050</option>
+<option value="6100">6100</option>
+<option value="6150">6150</option>
+<option value="6200">6200</option>
+<option value="6250">6250</option>
+<option value="6300">6300</option>
+<option value="6350">6350</option>
+<option value="6400">6400</option>
+<option value="6450">6450</option>
+<option value="6500">6500</option>
+<option value="6550">6550</option>
+<option value="6600">6600</option>
+<option value="6650">6650</option>
+<option value="6700">6700</option>
+<option value="6750">6750</option>
+<option value="6800">6800</option>
+<option value="6850">6850</option>
+<option value="6900">6900</option>
+<option value="6950">6950</option>
+<option value="7000">7000</option>
+<option value="7050">7050</option>
+<option value="7100">7100</option>
+<option value="7150">7150</option>
+<option value="7200">7200</option>
+<option value="7250">7250</option>
+<option value="7300">7300</option>
+<option value="7350">7350</option>
+<option value="7400">7400</option>
+<option value="7450">7450</option>
+<option value="7500">7500</option>
+<option value="7550">7550</option>
+<option value="7600">7600</option>
+<option value="7650">7650</option>
+<option value="7700">7700</option>
+<option value="7750">7750</option>
+<option value="7800">7800</option>
+<option value="7850">7850</option>
+<option value="7900">7900</option>
+<option value="7950">7950</option>
+<option value="8000">8000</option>
+<option value="8050">8050</option>
+<option value="8100">8100</option>
+<option value="8150">8150</option>
+<option value="8200">8200</option>
+<option value="8250">8250</option>
+<option value="8300">8300</option>
+<option value="8350">8350</option>
+<option value="8400">8400</option>
+<option value="8450">8450</option>
+<option value="8500">8500</option>
+<option value="8550">8550</option>
+<option value="8600">8600</option>
+<option value="8650">8650</option>
+<option value="8700">8700</option>
+<option value="8750">8750</option>
+<option value="8800">8800</option>
+<option value="8850">8850</option>
+<option value="8900">8900</option>
+<option value="8950">8950</option>
+<option value="9000">9000</option>
+<option value="9050">9050</option>
+<option value="9100">9100</option>
+<option value="9150">9150</option>
+<option value="9200">9200</option>
+<option value="9250">9250</option>
+<option value="9300">9300</option>
+<option value="9350">9350</option>
+<option value="9400">9400</option>
+<option value="9450">9450</option>
+<option value="9500">9500</option>
+<option value="9550">9550</option>
+<option value="9600">9600</option>
+<option value="9650">9650</option>
+<option value="9700">9700</option>
+<option value="9750">9750</option>
+<option value="9800">9800</option>
+<option value="9850">9850</option>
+<option value="9900">9900</option>
+<option value="9950">9950</option>
+<option value="10000">10000</option>
+<option value="10100">10100</option>
+<option value="10200">10200</option>
+<option value="10300">10300</option>
+<option value="10400">10400</option>
+<option value="10500">10500</option>
+<option value="10600">10600</option>
+<option value="10700">10700</option>
+<option value="10800">10800</option>
+<option value="10900">10900</option>
+<option value="11000">11000</option>
+<option value="11100">11100</option>
+<option value="11200">11200</option>
+<option value="11300">11300</option>
+<option value="11400">11400</option>
+<option value="11500">11500</option>
+<option value="11600">11600</option>
+<option value="11700">11700</option>
+<option value="11800">11800</option>
+<option value="11900">11900</option>
+<option value="12000">12000</option>
+<option value="12100">12100</option>
+<option value="12200">12200</option>
+<option value="12300">12300</option>
+<option value="12400">12400</option>
+<option value="12500">12500</option>
+<option value="12600">12600</option>
+<option value="12700">12700</option>
+<option value="12800">12800</option>
+<option value="12900">12900</option>
+<option value="13000">13000</option>
+<option value="13100">13100</option>
+<option value="13200">13200</option>
+<option value="13300">13300</option>
+<option value="13400">13400</option>
+<option value="13500">13500</option>
+<option value="13600">13600</option>
+<option value="13700">13700</option>
+<option value="13800">13800</option>
+<option value="13900">13900</option>
+<option value="14000">14000</option>
+<option value="14100">14100</option>
+<option value="14200">14200</option>
+<option value="14300">14300</option>
+<option value="14400">14400</option>
+<option value="14500">14500</option>
+<option value="14600">14600</option>
+<option value="14700">14700</option>
+<option value="14800">14800</option>
+<option value="14900">14900</option>
+<option value="15000">15000</option>
+ 
+</select>
+</td>
+</table>
+</td>
+</tr>
+<tr>
+<td colspan="2" align="left">
+	<p class="a1"><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or</strong></p>
+</td>
+</tr>
+<tr>
+<td colspan="1" align="left">
+	<p class="a1"><strong>Select IED threat type:</strong></p> 
+</td>
+<td width="25%">
+<table class="hidden-table" width="100%" border="0"> 
+<select name="selectedThreat" id="selectedThreat" size="1" tabindex="3" class="ee125" style="width:230px">
+<option value="1" selected>Please Select</option>
+<option value="2">Beer Keg</option>
+<option value="3">Briefcase/Suitcase Bomb</option>
+<option value="4">Compact Sedan</option>
+<option value="5">Cooking Gas Cylinder (25lb/11kg)</option>
+<option value="6">Cooking Pot (2.5Gal/10l)</option>
+<option value="7">Daypack/Backpack</option>
+<option value="8">Large Trashcan</option>
+<option value="9">Metal Oil Drum (45 gal/170l)</option>
+<option value="10">Milk Churn</option>
+<option value="11">Moving Van/Water Truck</option>
+<option value="12">Parcel/Package</option>
+<option value="13">Passenger/Cargo Van</option>
+<option value="14">Pipe Bomb</option>
+<option value="15">Sedan</option>
+<option value="16">Semitrailer</option>
+<option value="17">Small Moving Van/ Delivery Truck</option>
+<option value="18">Small Wheelie Bin (40gal/150l)</option>
+<option value="19">Standard Trashcan</option>
+<option value="20">Suicide Belt</option>
+<option value="21">Suicide Vest</option>
+ 
+</select> 
+</table>
+</td> 
+</tr>
+ 
+
+<tr><td colspan="2" align="left"><HR align="" width="90%" style="margin-left: 10;"/></br>
+</td></tr>
+
+<tr>
+	<td colspan="7"   >
+		<div class="title2">Results</div></br>		 
+	</td>
+</tr> 	
+<tr>
+ <td colspan="1" align="left"><p class="a1"><strong>Selected threat:</strong></p></td>
+ <td width="25%"  >  
+<input value="" name="p1F12" id="p1F12" type="text" tabindex="-1" readonly="readonly" style="overflow:hidden; border:1px solid #000000; width:230px">
+ </td>
+ </tr>  
+<tr>
+<td colspan="1" valign="left">
+<p class="a1"><strong>IED equivalent weight:</strong></p>
+</td>
+<td width="50%" align="left">  
+<input value="" name="theLbs" id="theLbs" type="text" tabindex="-1" readonly="readonly" size="1"  style="overflow:hidden; border:1px solid #000000;width:10%"> <font class="a1"><strong>&nbsp;lbs.</strong> </font>
+</td>
+</tr>  
+<tr>
+<td width="25%" valign="left">
+<p class="a1"><strong>Building Evacuation Distance:</strong></p> 
+</td>
+<td width="25%" align="left"><input value="0" name="p1H15" id="p1H15" type="text" tabindex="-1" readonly="readonly" size="1" style="overflow:hidden; border:1px solid #000000; width:10%"><font class="a1"><strong>&nbsp;feet&nbsp;&nbsp;&nbsp;&nbsp;=</strong></font>&nbsp;&nbsp;&nbsp;&nbsp;<input value="0" name="p1K15" id="p1K15" type="text" tabindex="-1" readonly="readonly" size="1" style="overflow:hidden; border:1px solid #000000;width:10%"><font class="a1"><strong>&nbsp;meters</strong</font>
+</td>
+</tr>
+<tr>
+<td width="25%"  valign="left">
+<p class="a1"><strong>Outdoor Evacuation Distance:</strong></p> 
+</td>
+<td width="25%" align="left">
+<input value="0" name="p1H16" id="p1H16" type="text" tabindex="-1" readonly="readonly" size="1" style="overflow:hidden; border:1px solid #000000;width:10%"><font class="a1"><strong>&nbsp;feet&nbsp;&nbsp;&nbsp;&nbsp;=</strong></font>&nbsp;&nbsp;&nbsp;&nbsp;<input value="0" name="p1K16" id="p1K16" type="text" tabindex="-1" readonly="readonly" size="1" style="overflow:hidden; border:1px solid #000000;width:10%"><font class="a1"><strong>&nbsp;meters</strong</font>
+</td>
+</tr>
+<tr>
+<td colspan="1" align="left"><div class="a1"><strong>Usage:</strong></div> 
+</td>
+</tr>
+<tr>
+<td colspan="7" valign="left" ><font>
+	<ul style="padding-left: 40px;" class="a">
+		<li>Select threat by explosive and weight together, or by IED threat type. Calculated results are meant to conform to published threat cards.</li>
+		<li><strong>Building evacuation advisory:</strong> All personnel must either seek shelter inside a building (with some risk within the calculated distance) away from windows
+			and exterior walls, or move beyond the outdoor evacuation distance (outside the calculated distance).
+		</li>
+		<li><strong>Outdoor evacuation advisory:</strong> Preferred area (beyond the calculated distance) for evacuation of people in buildings and mandatory for people outdoors.
+		</li>
+	</ul></font>
+<p style="font-size:9px" valign="left">Provided as a courtesy by Alluviam LLC</p>
+</td>
+</tr>
+</table>
+    ';
+  return $html;
+}

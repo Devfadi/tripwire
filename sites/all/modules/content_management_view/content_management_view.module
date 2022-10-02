@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Content Management View feature.
+ */
+
+include_once 'content_management_view.features.inc';

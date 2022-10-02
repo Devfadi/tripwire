@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OSINT Item Content Type feature.
+ */
+
+include_once 'osint_item_content_type.features.inc';

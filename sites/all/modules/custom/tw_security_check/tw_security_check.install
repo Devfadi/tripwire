@@ -1,0 +1,83 @@
+<?php
+
+
+/**
+ * Implementation of hook_install()
+ */
+function tw_security_check_install()
+{
+	// Create a row each user in the {tw_security_check_users} table
+	$query2 = db_insert('tw_security_check_users')->fields(array('uid', 'last_security_accept'));
+
+	$uids = db_query('SELECT uid, created FROM {users} WHERE uid > 0');
+	foreach($uids as $uid)
+	{
+		$query2->values(array($uid->uid, $uid->created));
+	}
+	$query2->execute();
+	
+	// Create a new column in the {users} table to indicate a required forced password change
+	// This is added to the {users} table ather than the {tw_security_check_users} table
+	//  so that the value is loaded during the bootstrap process
+	db_add_field
+	(
+		'users',
+		'tw_security_check',
+		array
+		(
+			'type' => 'int',
+			'length' => 1,
+			'default' => 0,
+		),
+		array
+		(
+			'indexes' => array
+			(
+				'user_tw_security' => array('uid', 'tw_security_check'),
+			),
+		)
+	);
+}
+
+
+/**
+ * Implementation of hook_schema()
+ */
+function tw_security_check_schema()
+{
+	// This table contains one row for each user, and holds stats
+	// regarding their password changes and when they were last
+	// forced to change their password.
+	$schema['tw_security_check_users'] = array
+	(
+		'description' => t('Holds annual security agreement check data for users'),
+		'fields' => array
+		(
+			'uid' => array
+			(
+				'description' => t('The UID from the {users} table'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			'last_security_accept' => array
+			(
+				'description' => t('A UNIX timestamp referring to the date that the user last accepted the annual security agreement'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+			),
+			'last_force' => array
+			(
+				'description' => t('A UNIX timestamp referring to the last date on which the user was forced to accept the annual security agreement'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+            ),
+		),
+		'primary key' => array('uid'),
+	);
+	return $schema;
+}

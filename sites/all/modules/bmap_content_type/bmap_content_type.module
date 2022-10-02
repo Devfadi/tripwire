@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * @file
+ * Code for the BMAP Content Type feature.
+ */
+
+include_once 'bmap_content_type.features.inc';
+

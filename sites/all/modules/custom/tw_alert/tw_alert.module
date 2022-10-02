@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implementation of hook_perm()
+ */
+function tw_alert_permission()
+{
+	return array
+	(
+		'Administer incident alert block' => array
+		(
+			'title' => t('Manage Incident Alert block'),
+			'description' => t('Gives users the ability to enable or disable the Incident Alert block.'),
+		),
+	);
+}
+
+/**
+* Implements hook_menu().
+*/
+function tw_alert_menu() {
+  $items['admin/config/system/tw_alert'] = array(
+    'title' => 'TRIPwire Incident Alert',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_alert_settings_form'),
+    'access arguments' => array('Administer incident alert block'),
+    'file' => 'tw_alert.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}

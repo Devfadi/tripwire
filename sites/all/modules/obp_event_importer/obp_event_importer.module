@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OBP Event Importer feature.
+ */
+
+include_once 'obp_event_importer.features.inc';

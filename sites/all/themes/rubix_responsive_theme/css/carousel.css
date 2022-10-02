@@ -1,0 +1,321 @@
+@font-face {
+    font-family: 'roboto_slabregular';
+    src: url('../fonts/robotoslab-regular-webfont.woff2') format('woff2'),
+         url('../fonts/robotoslab-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'robotobold';
+    src: url('../fonts/roboto-bold-webfont.woff2') format('woff2'),
+         url('../fonts/roboto-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'robotoregular';
+    src: url('../fonts/roboto-regular-webfont.woff2') format('woff2'),
+         url('../fonts/roboto-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'robotothin';
+    src: url('../fonts/roboto-thin-webfont.woff2') format('woff2'),
+         url('../fonts/roboto-thin-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/** Visibility fix for stacking slides during initialization. */
+.slick__slide {
+  max-width: 100%;
+  position: absolute;
+  visibility: hidden;
+}
+
+/** Prevents collapsing container during initialization. */
+.slick__slide.slide--0 {
+  position: relative;
+}
+
+.front.not-logged-in #block-views-full-width-carousel-block-2 {
+    margin-bottom: 50px;
+}
+
+.unslick .slick__slide,
+.slick-initialized .slick__slide {
+  position: relative;
+  visibility: visible;
+}
+
+.slick--view--full-width-carousel .slick__slide .left {
+  background: #003366;
+  width: 60%;
+  position: absolute;
+  z-index: 2;
+  padding: 2vw 2vw .5vw 4vw;
+}
+
+.slick--view--full-width-carousel .slick__slide .right {
+  float: right;
+  width: 40%;
+  overflow: hidden;
+}
+
+.slick--view--full-width-carousel .slick__slide .left .views-field-path {
+    position: absolute;
+    bottom: 0;
+    background: #122a3e;
+    height: 60px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.slick--view--full-width-carousel .slick__slide .left .views-field-path a {
+    color: #fff;
+    font-size: 24px;
+    line-height: 2.5em;
+    font-family: 'roboto_slabregular';
+    display: block;
+}
+
+.slick--view--full-width-carousel .slick__slide img {
+    width: 100%;
+    padding: 0;
+    border: 0 none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.slick--view--full-width-carousel .slick__slide.slick-current img {
+    visibility: visible;
+    opacity: 1;
+}
+
+.slick--view--full-width-carousel .slick__slide img {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+}
+
+.views-field-field-image:not(.disablemovement) img {
+  animation: kenburns 20s infinite;
+}
+
+.disablemovement {
+    /*height: 320px;*/
+    float: right;
+}
+
+.slick--view--full-width-carousel .slick__slide .disablemovement img {
+}
+
+.slick--view--full-width-carousel .slick__slide .views-field-title a {
+    font-size: 1em;
+    line-height: 1em;
+    color: #fff;  
+    width: calc(100% - (30px *2));
+    font-family: 'robotobold';
+}
+
+.slick--view--full-width-carousel .slick__slide .left .views-field-body p, .slick--view--full-width-carousel .slick__slide .left .views-field-body, #container .slick--view--full-width-carousel .slick__slide .left .views-field-body p {
+    font-family: 'robotoregular', sans-serif;
+    color: #f1f1f1;
+    font-size: 16px;
+    line-height: 24px;
+    margin-top: 20px;
+}
+
+.slick--view--full-width-carousel .slick__slide .left .views-field-body a {
+    color: #fff;
+    font-family: 'robotobold';
+}
+
+#container .slick--view--full-width-carousel strong {
+    color: inherit;
+}
+
+.slick--view--full-width-carousel .slick__slide .right.rightvideo {
+    float: right;
+    width: 40%
+}
+
+.slick--view--full-width-carousel .slick__slide .node-video {
+    background: #000;
+    min-height: 360px;
+}
+.slick--view--full-width-carousel .slick__slide .node-video header {
+    display: none;
+}
+
+.slick--view--full-width-carousel .slick__slide .video-js {
+    margin: 0 auto;
+    /*position: relative;
+    top: 50%;
+    transform: translateY(25%);*/
+    max-height: 320px;
+    overflow: hidden;
+}
+
+.slick--view--full-width-carousel .slick-slide  .video-js .vjs-big-play-button {
+    top: 55%;
+}
+
+#container .video-js .vjs-icon-placeholder {
+    font-size: 1.5em;
+    color: #fff;
+}
+
+#container .video-js .vjs-icon-placeholder:hover {
+    background-image: inherit;
+}
+
+.slick--view--full-width-carousel .video-js .vjs-big-play-button:hover {
+    background: #cc181e;
+}
+
+.slick--view--full-width-carousel .video-js .vjs-big-play-button:before, .slick--view--full-width-carousel .video-js .vjs-control:before {
+    top: 22%;
+}
+
+.slick--view--full-width-carousel .slick__arrow li, .slick__arrow button {
+    box-shadow: none;
+}
+
+.slick--view--full-width-carousel .slick-arrow::before, .program-carousel .slick-arrow::before{
+    font-family: "Fontawesome";
+    color: #fff;
+}
+
+.slick--view--full-width-carousel .slick-prev:before, .program-carousel .slick-prev:before {
+    content: "\f053";
+}
+
+.slick--view--full-width-carousel .slick-next:before, .program-carousel .slick-next:before{
+    content: "\f054";
+}
+.slick--view--full-width-carousel .slick-dots {
+    text-align: left;
+}
+
+.slick--view--full-width-carousel .slick-dots li{
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+/*
+.slick--view--full-width-carousel .slick-dots {
+    position: static;
+    margin: 0;
+    text-align: center;
+    padding: 5px 0 5px 0px;
+    background: #00263D;
+    bottom: 0;
+    right: 0;
+}
+.slick--view--full-width-carousel .slick-dots li {
+    max-width: 240px;
+    background: 0 none;
+    height: auto;
+    vertical-align: top;
+    margin: 0 0 0 15px;
+    padding: 0;
+    border: 5px solid transparent;
+}
+*/
+
+.fakevideo {
+    /*padding: 37.14px 109.85px;*/
+    background: #ccc;
+    width: 100%;
+    display: block;
+    padding-top: 10%;
+}
+
+.fakevideo::before {
+    font-size: 2rem;
+    /*line-height: 3rem;*/
+}
+
+/*
+.slick--view--full-width-carousel .slick-dots.scrollbar {
+    overflow: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}*/
+
+.scrollbar::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px #122A3E);
+	background-color: #F5F5F5;
+}
+
+.scrollbar::-webkit-scrollbar
+{
+	height: 10px;
+	background-color: #F5F5F5;
+}
+
+.scrollbar::-webkit-scrollbar-thumb
+{
+	background-color: #666666;
+}
+/*
+
+.slick--view--full-width-carousel .slick-dots li.slick-active {
+    border: 5px solid dodgerblue;
+
+}
+
+.slick--view--full-width-carousel .slick-dots li img {
+    display: block;
+}
+*/
+
+/* VIDEO STUFF */
+.vidthumbplace {
+        position: absolute;
+    top: 0;
+    height: 320px;
+    width: 640px;
+    background-size: contain;
+    left: 40%;
+    z-index: 1;
+    background-repeat: no-repeat;
+}
+
+.slick--view--full-width-carousel .slick-slide  .video-js .vjs-big-play-button {
+    z-index: 2;
+}
+
+@keyframes kenburns {
+    0% {
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    95% {
+        animation-timing-function: ease-in;
+        transform: scale3d(1.1, 1.1, 1.1) translate3d(0px, -120px, 0px);
+        opacity: 1;
+    }
+    100% {
+        transform: scale3d(1.1, 1.1, 1.1) translate3d(0px, -120px, 0px);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 1200px) {
+  .slick--view--full-width-carousel .slick-dots li {
+      /*width: 80px;*/
+  }
+
+  .fakevideo {
+      padding: 18.25px 28.15px;
+  }
+}

@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * Implements hook_feeds_processor_targets_alter() from Feeds.
+ */
+function feeds_tw_security_questions_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  // For user imports, add a target field for every Password Reset security question
+  if ($entity_type == 'user') {
+    $num_user_questions = _tw_security_questions_variable_get('num_questions');
+    //dpm($targets);
+    for ($i = 1; $i <= $num_user_questions; ++$i) {
+      $targets["password_reset:question" . $i] = array(
+        'name' => t('Question ') . $i,
+        'description' => t(''),
+      );
+      $targets["password_reset:answer" . $i] = array(
+        'name' => t('Answer ') . $i,
+        'description' => t(''),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_feeds_after_save() from Feeds.
+ */
+function feeds_tw_security_questions_feeds_after_save(FeedsSource $source, $entity, $item, $entity_id) {
+  $questions = array();
+
+  // Loop through mappings to compile values for each question and answer
+  $config = $source->importer->getConfig();
+  foreach ($config['processor']['config']['mappings'] as $mapping) {
+    if (strpos($mapping['target'], 'password_reset:') === 0) {
+      list($entity_type, $bundle) = explode(':', $mapping['target']);
+      $questions[$bundle] = $item[strtolower($mapping['source'])];
+    }
+  }
+
+  if (empty($questions)) {
+    return;
+  }
+  // Save or update each security question
+  $question = NULL;
+
+  //Need to determine qid
+  $questions = tw_security_questions_questions_get();
+  $q1 = array_search($item['security question1'], $questions);
+  $q2 = array_search($item['security question2'], $questions);
+
+  //Now we save the question and answer
+  $record1 = array(
+      'uid' => $entity->uid,
+      'qid' => $q1,
+      'answer' => $item['securityanswer1']
+    );
+    tw_security_questions_answer_add($record1, array());
+
+  $record2 = array(
+      'uid' => $entity->uid,
+      'qid' => $q2,
+      'answer' => $item['security answer2']
+    );
+    tw_security_questions_answer_add($record2, array());
+}

@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Password reset module: Install file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function feeds_tw_security_questions_install() {
+  // Insert TW questions.
+  db_insert('tw_security_questions')
+  ->fields(array('question' => 'What is a date that has some significance to you? (MM/DD/YYY)'))
+  ->execute();
+  db_insert('tw_security_questions')
+  ->fields(array('question' => 'What is a four digit number that you can rememember?'))
+  ->execute();
+  db_insert('tw_security_questions')
+  ->fields(array('question' => 'What is the maiden name of a person that you know?'))
+  ->execute();
+  db_insert('tw_security_questions')
+  ->fields(array('question' => 'What is the name of your first pet?'))
+  ->execute();
+  db_insert('tw_security_questions')
+  ->fields(array('question' => 'What was the model of your first car?'))
+  ->execute();
+
+  $t = get_t();
+  drupal_set_message($t('Feeds Password Reset module: TW questions have been added.'));
+}

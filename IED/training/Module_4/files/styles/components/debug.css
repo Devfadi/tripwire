@@ -1,0 +1,54 @@
+#debug {
+    background-color: #131314;
+    display: none;
+    font-family: "Courier New",Courier,monospace;
+    height: 100%;
+    left: 0;
+    margin: 0;
+    opacity: 0.90;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 999999;
+}
+#debug_msg {
+    overflow: auto;
+}
+#debug_footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+#debug_input {
+    display:none;
+}
+
+#debug .error {
+    color: #FF0000 /* red  */
+}
+#debug .warn {
+    color: #FFD000 /* yellow */
+}
+#debug .info {
+    color: #00FF00 /* green */
+}
+#debug .trace,
+#debug .msg,
+#debug .log {
+    color: #999999 /* grey */
+}
+
+#debug .cmd {
+    color: #00FFFB; /* blue */
+    font-weight: bold;
+}
+#debug .text {
+    color: #FFFFFF /* white */
+}
+#debug .output {
+    color: #FF00ED /* magenta-ish */
+}
+#debug_input {
+    color: #000000 /* black text */
+}

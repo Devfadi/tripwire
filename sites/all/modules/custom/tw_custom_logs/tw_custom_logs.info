@@ -1,0 +1,5 @@
+name = Tw custom logs
+description = Custom logs capture for drupal
+package = Custom
+version = VERSION
+core = 7.x

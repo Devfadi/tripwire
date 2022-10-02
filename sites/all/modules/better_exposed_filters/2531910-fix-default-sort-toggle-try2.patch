@@ -1,0 +1,39 @@
+diff --git a/better_exposed_filters_exposed_form_plugin.inc b/better_exposed_filters_exposed_form_plugin.inc
+index 3eb8742..5dbb053 100644
+--- a/better_exposed_filters_exposed_form_plugin.inc
++++ b/better_exposed_filters_exposed_form_plugin.inc
+@@ -864,6 +864,18 @@ dateFormat: "dd-mm-yy"
+           $form[$settings['sort']['advanced']['combine_param']]['#default_value'] = '';
+         }
+ 
++        // If there is a sort set, determine which key it is.
++        $selected_key = '';
++        if (!empty($form_state['input'][$settings['sort']['advanced']['combine_param']])) {
++          foreach ($form['sort_by']['#options'] as $by_key => $by_val) {
++            foreach ($form['sort_order']['#options'] as $order_key => $order_val) {
++              if ($form_state['input'][$settings['sort']['advanced']['combine_param']] == "$by_key $order_key") {
++                $selected_key = $by_key;
++              }
++            }
++          }
++        }
++
+         $selected = '';
+         $used_sort_keys = array();
+         foreach ($form['sort_by']['#options'] as $by_key => $by_val) {
+@@ -876,11 +888,15 @@ dateFormat: "dd-mm-yy"
+               // Respect default sort order set in Views. The default sort field
+               // will be the first one if there are multiple sort criteria.
+               $selected = "$by_key $order_key";
++              if (empty($selected_key)) {
++                $selected_key = $by_key;
++              }
+             }
+            if ($settings['sort']['bef_format'] == 'bef_toggle_links') {
+              if (isset($used_sort_keys[$by_key])
+                || (!empty($form_state['input'][$settings['sort']['advanced']['combine_param']]) && $form_state['input'][$settings['sort']['advanced']['combine_param']] == "$by_key $order_key")
+                || (empty($form_state['input'][$settings['sort']['advanced']['combine_param']]) && $selected == "$by_key $order_key")
++               || (!empty($selected_key) && $by_key != $selected_key && isset($form_state['view']->display_handler->handlers['sort'][$by_key]) && $order_key != $form_state['view']->display_handler->handlers['sort'][$by_key]->options['order'])
+              ) {
+                 $hidden_options["$by_key $order_key"] = "$by_val $order_val";
+              }

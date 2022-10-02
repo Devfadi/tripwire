@@ -1,0 +1,135 @@
+.view-imported-users-management table {
+    border: 0 none;
+    background: transparent;
+}
+
+.view-imported-users-management th {
+    background: #f3f3f3;
+    text-align: left;
+    padding: 15px 20px 15px 10px;
+    font-size: 13px;
+    vertical-align: middle;
+    font-weight: bold;
+    color: #525252;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    border-right: 0 none;
+    text-shadow: none;
+}
+
+table tr.odd {
+    background: #fff;
+    border-bottom: 0 none;
+    min-height: 62px;
+}
+
+table tr.even {
+    background: #f9f9f9;
+    border-bottom: 0 none;
+    min-height: 62px;
+}
+
+table tr.odd td {
+    background: transparent;
+}
+
+table tr.even td {
+    background: transparent;
+}
+
+table td {
+    border-right: 0 none;
+    border-bottom: 0 none;
+    padding: 21px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.01);
+}
+
+table tbody td a {
+    color: #3c6994;
+}
+
+tbody tr:nth-child( even):not(.ipsTable_highlight) td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.025);
+}
+
+tr:hover {
+    background: #f3f3f3 !important;
+    cursor: pointer;
+}
+
+table thead th.active {
+    background: #4791c4;
+    color: #fff;
+}
+
+table thead th.active a {
+    color: #fff;
+}
+
+table thead tr th a {
+    color: #525252;
+}
+
+table thead tr th img {
+    float: right;
+}
+
+.view-imported-users-management .views-exposed-form {
+    background: #4e5b62;
+    overflow: hidden;
+}
+
+.view-imported-users-management .views-exposed-form .views-exposed-widgets {
+    float: right;
+}
+
+.view-imported-users-management .views-exposed-form .description {
+    display: none;
+}
+
+.view-imported-users-management tbody .views-field-nothing .icons {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    border-radius: 4px;
+    opacity: 0.8;
+    float: right;
+    -webkit-transition: 0.2s all linear;
+    -moz-transition: 0.2s all linear;
+    -ms-transition: 0.2s all linear;
+    -o-transition: 0.2s all linear;
+    transition: 0.2s all linear;
+    padding: 0;
+}
+
+.view-imported-users-management .icon {
+    font-size: 18px;
+    line-height: 24px;
+    display: inline-block;
+    opacity: 0.7;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.view-imported-users-management .icon:first-child {
+    border-left: 0 none;
+}
+
+.view-imported-users-management .icon .fa {
+    color: #000;
+    width: 30px;
+    height: 24px;
+    text-align: center;
+}
+
+.view-imported-users-management tbody tr:hover .views-field-nothing .icons {
+    opacity: 1;
+}
+
+.content table thead a img {
+    padding: 0;
+    box-shadow: none;
+    background: transparent;
+    border: 0 none;
+}
+
+.content table thead a:hover img {
+    background: transparent;
+}

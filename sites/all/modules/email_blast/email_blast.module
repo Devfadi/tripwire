@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Email Blast feature.
+ */
+
+include_once 'email_blast.features.inc';

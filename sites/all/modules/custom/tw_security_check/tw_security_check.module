@@ -1,0 +1,138 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function tw_security_check_menu() {
+  $items = array();
+
+  $items['agreement/%'] = array(
+    'title' => 'TripWire Annual Security Agreement',
+    'page callback' => 'tw_security_check_force',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_security_check.force.inc',
+   );
+
+   $items['agreement-check'] = array(
+    'title' => 'TripWire Annual Security Agreement',
+    'page callback' => 'tw_security_check_validate',
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_security_check.force.inc',
+   );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_init()
+ *
+ * This function checks two things:
+ * 1) Whether the user's account has been flagged to re-check the annual security agreement
+ * 2) Whether they now need to re-check the annual security agreeemnet
+ * 
+ * If either of the two conditions above returns true, they are redirected to the change password page
+ */
+function tw_security_check_init() {
+  global $user;
+  $redirect = FALSE;
+  if ($user->uid && isset($user->tw_security_check)) {
+    // This code stolen from tw_password_mgmt.  It ensures it does not fire on certain paths, like log out or password change.
+    $ajax_request = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && !$_SERVER['HTTP_X_REQUESTED_WITH'] != 'XMLHttpRequest';
+    $change_password_url = preg_replace('/!uid/', $user->uid, variable_get('tw_password_mgmt_change_password_url', 'user/!uid/edit'));
+    if($user->uid && !$ajax_request && !in_array(current_path(), array($change_password_url, 'user/logout', drupal_get_path_alias('user/logout'), 'user/password', drupal_get_path_alias('user/password'), 'masquerade/unswitch')))
+		{
+      if ($user->tw_security_check == 1) {
+        if (strpos(CURRENT_PATH(), 'agreement') !== false) {
+          if (CURRENT_PATH() !== 'agreement-check') {
+            //on agreement page
+          //_write_record($user, 'security_agreement', 'User ' . $user->name . ' is required to accept the Annual Security Agreement.', 'SKIP');
+          drupal_set_message(t('You must accept the TripWIRE Annual Security Agreement in order to continue using TripWIRE.'), 'error');
+          }
+        } else {
+          //redirect to agreement page
+          drupal_goto('/' . 'agreement/' . $user->uid);
+          return;
+        }
+      } else {
+        // The user account does not have an existing flag set, let us now check if one is necessary
+        $pending_accept = tw_security_check_verify($user->uid);
+        if ($pending_accept) {
+          $redirect = TRUE;
+        }
+  
+        if($redirect) {
+          //redirect to agreement page
+          _write_record($user, 'security_agreement', 'User ' . $user->name . ' is required to accept the Annual Security Agreement.', 'SKIP');
+          drupal_goto('/' . 'agreement/' . $user->uid);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Checks whether or not user has a pending security agreement check
+ */
+function tw_security_check_verify($uid = NULL) {
+  // The user's account has not been flagged. Check to see
+  // if their security check has expired according to the rules of the module.
+  //
+  // First thing is to check the time of their last security agreement acceptance,
+  $query = db_select('tw_security_check_users', 'fpcu');
+  $alias = $query->join('users', 'u', 'u.uid = fpcu.uid');
+  $query
+    ->fields('fpcu', array('last_security_accept'))
+    ->condition($alias . '.uid', $uid);
+  $user_data = $query->execute()->fetchObject();
+
+  // Now compare last acceptance date to see if it's been a year
+  if ($user_data->last_security_accept != '' && (REQUEST_TIME > (strtotime('+365 days', $user_data->last_security_accept)))) {
+    $query2 = db_update('users')
+                ->fields(array('tw_security_check' => 1))
+                ->condition('uid', $uid)
+                ->execute();
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Implementation of hook_user_insert()
+ */
+function tw_security_check_user_insert(&$edit, $account, $category) {
+  // This module requires that their is a row in the {tw_security_check_users} table
+	// for every user. This query adds that row to the database.
+	$query = db_insert('tw_security_check_users')
+  ->fields(array('uid' => $account->uid, 'last_security_accept' => $account->created))
+  ->execute();
+}
+
+function _write_record($user, $type, $log, $roles) {
+  if ($roles == 'SKIP') {
+    $current_account_status = '';
+    $old_account_status = '';
+    $roles = NULL;
+  } else {
+    $current_account_status = tw_user_history_account_current_status($user);
+    $old_account_status = tw_user_history_account_old_status($user['original']);
+  }
+
+  $data = array(
+    'uid' => $user->uid,
+    'type' => $type,
+    'log' => $log,
+    'timestamp' => REQUEST_TIME,
+    'name' => $user->name,
+    'account_state' => $user->status,
+    'current_account_status' => $current_account_status,
+    'old_account_status'  => $old_account_status,
+    'account_type' => $roles,
+    'author' => 'System',
+  );
+  return drupal_write_record('tw_user_history', $data);
+}

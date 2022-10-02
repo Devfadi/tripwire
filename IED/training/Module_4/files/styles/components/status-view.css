@@ -1,0 +1,49 @@
+.status-view {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 424px;
+    height: 90px;
+    margin-left: -212px;
+}
+.status-view .status-clock-icon {
+    background: url('../../assets/images/gui/icon-clock.png');
+    width: 90px;
+    height: 90px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+.status-view .status-timer-bar {
+    background: url('../../assets/images/gui/timer-bar.png');
+    height: 54px;
+    width: 348px;
+    position: absolute;
+    top: 18px;
+    left: 76px;
+    z-index: 1;
+}
+.status-view .status-timer-bar .bar {
+  background: none repeat scroll 0 0 magenta;
+  height: 34px;
+  left: 10px;
+  position: absolute;
+  top: 10px;
+  width: 328px;
+}
+.status-view .status-timer-bar.green .bar {
+    background-color: #00FF00;
+}
+.status-view .status-timer-bar.yellow .bar {
+    background-color: #FFCC00;
+}
+.status-view .status-timer-bar.red .bar {
+    background-color: #E10019;
+}
+.status-view .bar-time {
+    width: 100%;
+    text-align: center;
+    height: 100%;
+    font-size: 29px;
+}

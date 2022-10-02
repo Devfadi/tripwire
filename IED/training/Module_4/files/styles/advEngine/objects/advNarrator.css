@@ -1,0 +1,37 @@
+.adv-narrator {
+    bottom: 0;
+    left: 50%;
+    margin: 0 auto 0 -500px;
+    position: absolute;
+    width: 1000px;
+    z-index: 2;
+}
+.adv-narrator-image {
+    height: 128px;
+    width: 128px;
+}
+.adv-narrator-content {
+    bottom: 0;
+    height: 128px;
+    left: 128px;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+}
+.adv-narrator-content-bg {
+    background: none repeat scroll 0 0 black;
+    height: 124px;
+    left: 0;
+    opacity: 0.5;
+    top: 0;
+    z-index: 0;
+}
+.adv-narrator-text {
+    height: 106px;
+    overflow: auto;
+    padding: 11px;
+    position: relative;
+}
+.adv-narrator-text img {
+    float: right;
+}

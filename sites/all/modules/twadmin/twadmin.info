@@ -1,0 +1,9 @@
+name = TRIPwire Administrative
+description = Custom alterations for TRIPwire admin pages.
+core = 7.x 
+
+
+
+stylesheets[all][] = seven/reset.css
+stylesheets[all][] = seven/style.css
+stylesheets[all][] = twadmin.css

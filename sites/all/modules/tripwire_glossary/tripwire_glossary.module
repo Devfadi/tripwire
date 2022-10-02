@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the TRIPwire Glossary feature.
+ */
+
+include_once 'tripwire_glossary.features.inc';

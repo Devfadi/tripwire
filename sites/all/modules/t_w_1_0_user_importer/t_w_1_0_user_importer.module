@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the T.W 1.0 User Importer feature.
+ */
+
+include_once 't_w_1_0_user_importer.features.inc';

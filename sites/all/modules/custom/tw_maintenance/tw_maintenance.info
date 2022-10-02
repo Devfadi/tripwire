@@ -1,0 +1,3 @@
+name = TripWire Maintenance
+description = Custom module for additional site maintenance functionality
+core = 7.x

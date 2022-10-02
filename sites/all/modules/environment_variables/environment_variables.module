@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Environment Variables feature.
+ */
+
+include_once 'environment_variables.features.inc';

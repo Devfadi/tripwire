@@ -1,0 +1,39 @@
+<div class="adv-review">
+    <h1>{{percent}}% Complete</h1>
+    <table>
+        <tr>
+            <th>Item</th>
+            <th>Prompt</th>
+            <th>Selection</th>
+            <th>Feedback</th>
+            <th>Status</th>
+        </tr>
+        {{#each results}}
+        <tr>
+        {{#ifMatch state "incomplete"}}
+            <td>{{title}}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="adv-review-state {{state}}">{{status}}</td>
+        {{else}}
+            <td>{{title}}</td>
+            <td>{{#if stem}}{{stem}}{{/if}}</td>
+            <td>
+                {{#if selection}}{{selection}}{{/if}}
+                {{#if selections}}
+                <p>This question was looking for {{expected}} selections.</p>
+                <ul>
+                {{#each selections}}
+                {{#if isCorrect}}<li>{{this.text}} <span class="correct">(Correct)</span></li>{{else}}<li>{{this.text}} <span class="incorrect">(Incorrect)</span></li>{{/if}}
+                {{/each}}        
+                </ul>
+                {{/if}}
+            </td>
+            <td>{{#if feedback}}{{feedback}}{{/if}}</td>
+            <td class="adv-review-state {{state}}">{{status}}</td>
+        {{/ifMatch}}
+        </tr>
+        {{/each}}
+    </table>
+</div>

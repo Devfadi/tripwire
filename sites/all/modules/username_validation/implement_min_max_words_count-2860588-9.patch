@@ -1,0 +1,80 @@
+diff --git a/username_validation.admin.inc b/username_validation.admin.inc
+index 1fa8f66..1e24de9 100755
+--- a/username_validation.admin.inc
++++ b/username_validation.admin.inc
+@@ -51,7 +51,24 @@ function _username_validation_admin_form($form, &$form_state) {
+     '#maxlength' => 3,
+     '#default_value' => isset($username_validation_rule['max_char']) ? $username_validation_rule['max_char'] : '60',
+   );
+-
++  $form['username_validation_rule']['min_words'] = array(
++      '#type' => 'textfield',
++      '#title' => t("Minimum Words"),
++      '#required' => TRUE,
++      '#description' => t("Minimum number of words username should contain"),
++      '#size' => 12,
++      '#maxlength' => 3,
++      '#default_value' => isset($username_validation_rule['min_words']) ? $username_validation_rule['min_words'] : '1',
++  );
++  $form['username_validation_rule']['max_words'] = array(
++      '#type' => 'textfield',
++      '#title' => t("Maximum Words"),
++      '#required' => TRUE,
++      '#description' => t("Maximum number of words username should contain"),
++      '#size' => 12,
++      '#maxlength' => 3,
++      '#default_value' => isset($username_validation_rule['max_words']) ? $username_validation_rule['max_words'] : '25',
++  );
+   $form['username_validation_rule']['ajax_validation'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Enable Ajax Validation'),
+diff --git a/username_validation.module b/username_validation.module
+index bdbf3f8..3b5b878 100644
+--- a/username_validation.module
++++ b/username_validation.module
+@@ -88,6 +88,8 @@ function username_validation_ajax(&$form, &$form_state) {
+   $username = $form_state['values']['name'];
+   $min_char = $username_validation_rule['min_char'];
+   $max_char = $username_validation_rule['max_char'];
++  $min_words = $username_validation_rule['min_words'];
++  $max_words = $username_validation_rule['max_words'];
+   $findings = null;
+   $blacklist_char = isset($username_validation_rule['blacklist_char']) ? $username_validation_rule['blacklist_char'] : '';
+   $count_result = db_select('users')->fields(NULL, array('name'))->condition('name',$username)->countQuery()->execute()->fetchField();
+@@ -110,6 +112,12 @@ function username_validation_ajax(&$form, &$form_state) {
+   if (strlen($username) > $max_char) {
+     $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'>" . $label . ' should have maximum of ' . $max_char . " characters</div>");
+   }
++  if (str_word_count($username) < $min_words) {
++    $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'>" . $label . ' should have minimum of ' . $min_words . " word(s)</div>");
++  }
++  if (str_word_count($username) > $max_words) {
++    $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'>" . $label . ' should have maximum of ' . $max_words . " word(s)</div>");
++  }
+   if ($findings) {
+     $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'> The characters/words are not allowed to enter in the username - " . $findings[0] . "</div>");
+   }
+@@ -122,6 +130,8 @@ function username_validation_username_validate($form, &$form_state) {
+   $username = $form_state['values']['name'];
+   $min_char = $username_validation_rule['min_char'];
+   $max_char = $username_validation_rule['max_char'];
++  $min_words = $username_validation_rule['min_words'];
++  $max_words = $username_validation_rule['max_words'];
+ 
+   $blacklist_char = isset($username_validation_rule['blacklist_char']) ? $username_validation_rule['blacklist_char'] : '';
+   if (!empty($blacklist_char)) {
+@@ -141,7 +151,13 @@ function username_validation_username_validate($form, &$form_state) {
+   if (strlen($username) > $max_char) {
+     form_set_error('name', t($label . ' should have maximum of ' . $max_char . ' characters'));
+   }
+-}
++    if (str_word_count($username) < $min_words) {
++      form_set_error('name', t($label . ' should have minimum of ' . $min_words . ' word(s)'));
++    }
++    if (str_word_count($username) > $max_words) {
++      form_set_error('name', t($label . ' should have maximum of ' . $max_words . ' word(s)'));
++    }
++  }
+ 
+ /**
+  * Helper function to find any exclude values in username.

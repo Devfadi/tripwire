@@ -1,0 +1,17 @@
+name = Video Library Blocks
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = fe_block
+dependencies[] = fe_nodequeue
+dependencies[] = views_infinite_scroll
+features[ctools][] = views:views_default:3.0
+features[fe_block_settings][] = views-video_blocks-block_1
+features[fe_block_settings][] = views-video_blocks-block_2
+features[fe_block_settings][] = views-video_tags-block_1
+features[fe_nodequeue][] = popular_videos
+features[features_api][] = api:2
+features[views_view][] = video_blocks
+features[views_view][] = video_tags
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][views] = views

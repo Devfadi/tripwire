@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Related Content View feature.
+ */
+
+include_once 'related_content_view.features.inc';

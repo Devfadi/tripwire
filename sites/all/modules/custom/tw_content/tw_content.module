@@ -1,0 +1,218 @@
+<?php
+
+/**
+* Implements hook_menu().
+*/
+function tw_content_menu() {
+    $items['mytripwire'] = array(
+        'title' => 'Welcome to My TRIPwire',
+        'page callback' => 'tw_content_mytw',
+        'access callback' => 'user_is_logged_in',
+        'file' => 'tw_content.mytw.inc',
+        );
+
+    $items['node/osint-team-id'] = array(  
+        'page callback' => 'tw_content_osint_check',
+        'access callback' => TRUE,
+        'access callback' => 'user_is_logged_in',
+        'type' => MENU_CALLBACK,
+        );
+
+     $items['admin/config/development/bmap'] = array(
+        'title' => 'BMAP Icon Script',
+        'page callback' => 'bmap_icon_fix_form',
+        'access callback' => 'user_is_logged_in',
+        'file' => 'tw_content.bmap.inc',
+        );    
+
+    return $items;
+}
+
+/* T2OM-133: Determine federal region if left empty on node creation */
+function tw_content_form_alter(&$form, &$form_state, $form_id) {
+
+    /* T2OM-318: Changing personal contact form to use WYSIWYG*/
+    if ($form_id == 'contact_personal_form') {   
+        $form['message']['#type'] = 'text_format';
+        array_unshift($form['#submit'],'tw_content_contact_form_submit');
+    }
+        
+    if ($form_id == 'library_document_node_form' || $form_id == 'what_s_new_article_node_form') {
+        $form['#validate'][] = 'tw_content_fed_region_validate';
+    }
+
+    if ($form_id == 'osint_item_node_form') {
+        $form['#attached']['css'][] = drupal_get_path('module', 'tw_content') . '/css/osint.css';
+        $form['#attached']['js'][] = drupal_get_path('module', 'tw_content') . '/js/osintid.js';
+        $form['#validate'][] = 'tw_content_team_id_validate';
+    }
+
+  if ($form_id == 'bmap_activity_data_node_form') {
+    $form['#validate'][] = 'tw_content_bmap_fema';
+    $form['field_federal_region']['#disabled'] = TRUE;
+    $form['field_federal_region']['#access'] = FALSE;
+  }
+
+
+  /* TWDEV-169: Addidng JS for bmap calculations */
+  if ($form_id == 'bmap_activity_data_node_form') {
+    $path = drupal_get_path('module', 'tw_content'); 
+    $form['#attached']['js'][] = $path . '/js/bmap_calc.js';
+    $haystack = array('administrator', 'BMAP Administrator');
+    global $user;
+    if(count(array_intersect($haystack, $user->roles)) > 0){
+      $form['field_delivery_category']['#access'] = TRUE;
+      $form['field_bmap_map_flag']['#access'] = TRUE;
+    } else {
+      $form['field_delivery_category']['#access'] = FALSE;
+      $form['field_bmap_map_flag']['#access'] = FALSE;
+    }
+    $form['actions']['submit']['#submit'][] = 'bmap_node_submit';
+    $form['actions']['cancel'] = array(
+               '#type'   => 'submit',
+                '#value'  => t('Cancel'),
+                '#access' => TRUE,
+                '#weight' => 55,
+                '#submit' => array('bmap_node_submit'),
+                '#limit_validation_errors' => array(),
+                );
+  }
+}
+
+function bmap_node_submit($form, &$form_state) {
+  $form_state['redirect'] = '/bmap/activity-data';
+}
+
+function tw_content_fed_region_validate($form, &$form_state) {
+    if (isset($form_state['clicked_button'])) {
+        if ($form_state['clicked_button']['#value'] == 'Save') {
+            // Check if Fed Region is null.  If there is a value, no point in finding a fed region for this content
+            if ($form_state['values']['field_federal_region']['und'][0]['tid'] == NULL) {
+                // Next, check to see if there is a state value set. If there is not a state value, then we cannot find a fed region
+                if ($form_state['values']['field_state_province_region']['und'][0]['value'] !== NULL) {
+                    $fed_region_tid = array();
+                    foreach ($form_state['values']['field_state_province_region']['und'] as $state) {
+                        $fed_region_tid[] = tw_registration_fed_region_helper($state['value']);
+                    }
+                    // Cleaning up array to remove duplicates
+                    $result = array_unique($fed_region_tid);
+                    unset($form_state['values']['field_federal_region']['und'][0]);
+                    foreach ($result as $ft) {
+                        $form_state['values']['field_federal_region']['und'][]['tid'] = $ft;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function tw_content_bmap_fema($form, &$form_state) {
+      if (isset($form_state['clicked_button'])) {
+        if ($form_state['clicked_button']['#value'] == 'Save') {
+          if ($form_state['values']['field_address']['und'][0]['administrative_area'] !== NULL) {
+            	$fema_region_tid = tw_registration_fed_region_helper($form_state['values']['field_address']['und'][0]['administrative_area']);
+                $form_state['values']['field_federal_region']['und'][0]['tid'] = $fema_region_tid;
+          }
+        }
+      }
+}
+
+function tw_content_team_id_validate($form, &$form_state) {
+    if (isset($form_state['values']['field_osint_team_id']['und'])) {
+        // Look for other OSINT Item nodes with same OSINT Team ID as the one being entered
+        $query = new EntityFieldQuery();
+
+        $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'osint_item')
+            ->fieldCondition('field_osint_team_id', 'value', $form_state['values']['field_osint_team_id']['und'][0]['value'], '=')
+            ->range(0, 1); // Run the query as user 1.
+
+        $result = $query->execute();
+
+        if (isset($result['node'])) {
+            $result = array_shift($result['node']);
+            // Result found, so let's see if user wants to replace it
+            form_set_error('field_osint_team_id', 'An OSINT Item with that OSINT Team ID <a href="/node/' . $result->nid . '">already exists</a>.');
+            drupal_add_js(array('tw_content' => array('osint_replace' => $result->nid)), array('type' => 'setting'));
+            unset($result);
+            unset($query);
+            
+        }
+    }
+}
+
+function tw_content_osint_check()
+{
+	if(isset($_POST['count'])) {
+        $count = $_POST['count'];
+        if ($count !== '') {
+            node_delete($count);
+            drupal_set_message('Previous OSINT Item has been deleted. Please re-submit this form.');
+            $commands = array();
+            $commands[] = ajax_command_remove('#messages');
+            $commands[] = ajax_command_after('#header-region', '<div id="messages">' . theme('status_messages') . '</div>');
+            return array('#type' => 'ajax', '#commands' => $commands);
+        }
+    }
+}
+
+function tw_content_block_info() {    
+    $blocks['mytw_modify_subscriptions'] = array(
+        // info: The name of the block.
+        'info' => t('Modify Subscriptions'),
+    );
+
+    return $blocks;
+}
+
+function tw_content_block_view($delta = '') {
+    // The $delta parameter tells us which block is being requested.
+    switch ($delta) {
+      case 'mytw_modify_subscriptions':
+        // Create your block content here
+        $block['subject'] = t('');
+        $block['content'] = '<p><a href="/mytripwire/subscriptions">Modify Subscriptions</a></p>';  
+        break;
+     }
+  
+    return $block;
+  }  
+
+/**
+ * T2OM-194: Adding this hook to clear vote cache when a vote is cast because if Drupal caching is on, the vote does not appear to anonymous users immediately.
+ * Implements hook_votingapi_results().
+ */
+function tw_content_votingapi_results($cached, $entity_type, $entity_id) {
+    // Get the Entity URI
+    $uri = entity_uri($entity_type, node_load($entity_id));
+  
+    // Turn it into a URL.
+    $path = url($uri['path'], array('absolute' => TRUE));
+  
+    // Use a wildcard to catch paths with query strings.
+    cache_clear_all($path, 'cache_page', TRUE);
+  }
+
+/**
+ * T2OM-257: Adding logo for training page inline
+ */
+function tw_content_preprocess_page(&$variables) {
+    if (isset($variables['node']->type) && $variables['node']->type == 'training_and_education') {
+      if(!empty($variables['node']->field_training_logo)) {
+        global $base_url;
+        $titleFile = file_create_url($variables['node']->field_training_logo['und'][0]['uri']);
+        $titleFile = str_replace($base_url .'/', '', $titleFile);
+        $newTitle =  '<span class="training-logo"><img class="training-logo-img" src="/' . $titleFile . '" /></span><span class="training-title">' . $variables['node']->title . '</span>';
+        $variables['title'] = $newTitle;
+      } 
+    }
+  }
+
+  /* T2OM-318: Converting HTML message to string for contact form */
+
+  function tw_content_contact_form_submit($form, &$form_state) {
+        $new_message = $form_state['values']['message']['value'];
+        unset($form_state['values']['message']);
+        $form_state['values']['message'] = drupal_wrap_mail($new_message);
+    }
+    

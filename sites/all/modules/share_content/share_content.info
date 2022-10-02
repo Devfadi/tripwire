@@ -1,0 +1,12 @@
+name = Share content
+core = 7.x
+package = Features
+dependencies[] = forward
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[user_permission][] = access epostcard
+features[user_permission][] = access forward
+features[views_view][] = share_stats
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][features] = features

@@ -1,0 +1,133 @@
+<?php
+function tw_tfa_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == 'tfa_basic_overview') {
+        if (isset($form['app']['link']['#text'])) {
+            if ($form['app']['link']['#text'] == 'Reset application') {
+                $form['info']['#markup'] = '<h2>Two-Factor Authentication Setup</h2><p>Your account is setup with two-factor authentication per Government security requirements. Two-Factor authentication is an enhanced security requirement that will help protect your account and identity on the TRIPwire system.</p><p>Below are three options to reset your two-factor authentication, and view/generate your Recovery codes.</p>';
+                unset($form['status']);
+                unset($form['app']['heading']);
+                unset($form['app']['description']);
+                $form['app']['link']['#text'] = 'Reset Two-Factor Authentication';
+                $form['app']['link']['#suffix'] = ' – You can reset your two-factor authentication with a new QR or text code.</p>';
+                unset($form['recovery']['heading']);
+                unset($form['recovery']['description']);
+                $form['recovery']['list']['#suffix'] = ' - You can view the existing recovery codes that are ready to be used.</p>';
+                $form['recovery']['link']['#suffix'] = ' – You can generate one-time-use recovery codes to use if you are without your authenticator application.</p>';
+            }
+        }
+        // TFA Intro overview page
+        if (isset($form['setup'])) {
+            if (isset($form['status'])) {
+                unset($form['status']);
+            }
+            unset($form['info']);
+            $form['setup']['heading']['#value'] = 'Two-Factor Authentication Initial Setup';
+            $form['setup']['description']['#value'] = '<p>You are required to setup two-factor authentication per Government security requirements. Two-Factor authentication is an enhanced security requirement that will help protect your account and identity on the TRIPwire system.</p><p>With two-factor authentication, you will log into TRIPwire with a verification code in addition to your username and password. A mobile phone or web browser is required to generate your verification codes.</p><p>Click on the below link to begin two-factor authentication setup.</p>';
+            $form['setup']['link']['#text'] = 'Set up Two-Factor Authentication';
+        }
+    }
+
+    if ($form_id == 'tfa_basic_setup_form') {
+        //First setup page asking for password
+        if (!array_key_exists('qr_image', $form) && !array_key_exists('codes', $form) && !strpos($form['#action'], 'recovery-codes-list')) {
+            //This check looks for the QR image. Since URL is shared between asking for password and actual application set up, the QR code is our "flag" for which step the user is on
+            $form['current_pass']['#description'] = '';
+            $a['intro'] = array();
+            $a['intro']['#theme'] = 'html_tag';
+            $a['intro']['#tag'] = 'p';
+            $a['intro']['#value'] = 'Please enter your TRIPwire password for verification.';
+            array_splice($form, 1, 0, $a);
+            drupal_set_title('Two-Factor Authentication Set Up – Password Verification');
+        } elseif(array_key_exists('qr_image', $form) && !array_key_exists('codes', $form))  {
+            //QR Image is present, thus, we must be on the TFA Setup - Application page
+            drupal_set_title('Two-Factor Authentication Setup – Authenticator Application');
+            $form['apps']['#markup'] = '<div class="item-list"><p><u>Step 1</u> – Install an Authenticator Application: TRIPwire requires the use of a 3rd party Authenticator application to generate your verification codes. You will need to download the Authenticator application on a compatible mobile phone or web browser.</p>
+                <p>Mobile phone users can reference the below table to identify the Authenticator application to download on your phone. Note, that you will need your mobile phone when you log into TRIPwire.</p>
+                <table border="1" cellpadding="5" cellspacing="0" class="tfa-auth-apps"><tbody><tr><td style="background-color: royalblue;"><strong style="color: #fff;">Mobile Phone</strong></td><td style="background-color: royalblue;"><strong style="color: #fff;">Authenticator<br>Application</strong></td><td style="background-color: royalblue;"><strong style="color: #fff;">Link to the Authenticator Application</strong></td></tr><tr><td><p>Android Phone</p><p>iPhone</p></td><td><img src="/sites/all/modules/custom/tw_tfa/images/google-auth.png"><br>Google Authenticator</td><td><p><a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en_us">https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en_us</a></p><p><a href="https://apps.apple.com/us/app/google-authenticator/id388497605">https://apps.apple.com/us/app/google-authenticator/id388497605</a></p></td></tr><tr><td><p>Android iPhone</p><p>iPhone</p><p>Windows Phone</p></td><td><img src="/sites/all/modules/custom/tw_tfa/images/windows-auth.png"><br>Microsoft Authenticator</td><td><p><a href="https://play.google.com/store/apps/details?id=com.azure.authenticator&amp;hl=en_US">https://play.google.com/store/apps/details?id=com.azure.authenticator&amp;hl=en_US</a></p><p><a href="https://apps.apple.com/us/app/microsoft-authenticator/id983156458">https://apps.apple.com/us/app/microsoft-authenticator/id983156458</a></p><p><a href="https://www.microsoft.com/en-us/p/microsoft-authenticator/9nblgggzmcj6?activetab=pivot:overviewtab">https://www.microsoft.com/en-us/p/microsoft-authenticator/9nblgggzmcj6?activetab=pivot:overviewtab</a></p></td></tr></tbody></table>
+                <p>Users who cannot use a mobile phone when accessing their TRIPwire account or want to access their TRIPwire account from a laptop or desktop can install the following Authenticator application. Note, you will need your web browser to log into your TRIPwire account.</p>
+                <table border="1" cellpadding="0" cellspacing="0" class="tfa-auth-apps"><tbody><tr><td>Web Browser</td><td>Authenticator Application Name</td><td>Link to the Authenticator<br>Application plug-in</td></tr><tr><td>MS Edge, Firefox, Chrome Browser</td><td><img src="/sites/all/modules/custom/tw_tfa/images/auth-cc.png"><br>Authenticator.cc</td><td><a href="https://authenticator.cc">https://authenticator.cc</a></td></tr></tbody></table>
+                </div>';
+                $form['info']['#markup'] = '<p><u>Step 2</u> – Scan your TRIPwire Account QR Code: You will need to link your TRIPwire account to your Authenticator application on your mobile phone or web browser. Your Authenticator application should allow you to scan or manually enter the below QR code.</p>';
+            unset($form['code']['#description']);
+            $stepthree['intro'] = array();
+            $stepthree['intro']['#theme'] = 'html_tag';
+            $stepthree['intro']['#tag'] = 'p';
+            $stepthree['intro']['#value'] = '<u>Step 3</u> - Enter your Verification Code: A verification code will be generated by your Authenticator application after you scan or manually enter your QA code. The verification code is six digits long. Enter your verification below:';
+            array_splice($form, 6, 0, $stepthree);
+        } elseif(array_key_exists('codes', $form)) {
+            // This must be codes page
+            unset($form['codes']['#description']);
+            drupal_set_title('Two-Factor Authentication Setup – Recovery Codes');
+            $b['intro'] = array();
+            $b['intro']['#theme'] = 'html_tag';
+            $b['intro']['#tag'] = 'p';
+            $b['intro']['#value'] = 'Recovery codes will allow you to access your TRIPwire account if you are without your Authenticator application. Ten Recovery codes are provided below. Each 8-digit Recovery code is valid for one time use. Please write down and save your recovery codes and keep it with you.';
+            $form['actions']['save']['#value'] = 'Confirm';
+            array_splice($form, 1, 0, $b);
+            unset($form['actions']['skip']);
+            $form['#submit'][] = 'tw_tfa_basic_setup_form_submit';
+        }
+
+        // List unused recovery codes page
+        if (strpos($form['#action'], 'recovery-codes-list')) {
+            drupal_set_title('Two-Factor Authentication Setup – Recovery Codes');
+            $c['intro'] = array();
+            $c['intro']['#theme'] = 'html_tag';
+            $c['intro']['#tag'] = 'p';
+            if (!isset($form['current_pass'])) {
+                // Actually on the recovery codes page, and not the enter current Drupal password
+                $c['intro']['#value'] = 'Recovery codes will allow you to access your TRIPwire account if you are without your Authenticator application. Up to ten recovery codes are provided below. Each 8-digit Recovery code is valid for one time use. Please write down and save your recovery codes and keep it with you.';
+                $form['actions']['save']['#value'] = 'Confirm';
+                
+            } else {
+                // On the enter your drupal password before getting access to the recovery codes
+                $c['intro']['#value'] = 'Please enter your current password to display your Recovery codes.';
+            }
+            array_splice($form, 1, 0, $c);
+        }
+        
+    }
+
+    if ($form_id == 'tfa_form' && strpos($form['#action'], 'system/tfa')) {
+        if (isset($form['actions']['fallback'])) {
+            //This is the enter a code page
+            $form['actions']['fallback']['#value'] = 'I Don’t Have My Verification Code';
+            $form['code']['#description'] = 'Your verification code is generated by the Authenticator application that you scanned or manually entered with your TRIPwire Account QR code.';
+            $d['intro'] = array();
+            $d['intro']['#theme'] = 'html_tag';
+            $d['intro']['#tag'] = 'p';
+            $d['intro']['#value'] = 'Please enter your verification code that you setup using the Authenticator application on your mobile phone or web browser.';
+            array_splice($form, 0, 0, $d);
+            $e['intro'] = array();
+            $e['intro']['#theme'] = 'html_tag';
+            $e['intro']['#tag'] = 'p';
+            $e['intro']['#value'] = 'Note: If you have multiple verification codes, use the verification code that you last setup with your TRIPwire QR code.';
+            array_splice($form, 2, 0, $e);
+        } else {
+            //This is the enter a recovery code page
+            drupal_set_title('Two-Factor Authentication – Recovery Code');
+            $f['intro'] = array();
+            $f['intro']['#theme'] = 'html_tag';
+            $f['intro']['#tag'] = 'p';
+            $f['intro']['#value'] = 'You will need to enter your one-time use recovery code below if your verification code isn’t working. Please enter your 8-digit recovery code without any spaces.';
+            array_splice($form, 0, 0, $f);
+            $g['intro'] = array();
+            $g['intro']['#theme'] = 'html_tag';
+            $g['intro']['#tag'] = 'p';
+            $g['intro']['#value'] = 'If you don’t have your Recovery code and still need support for your account, the help desk is available Monday through Friday, from 8 AM to 5 PM, EST. Our help desk team can be reached via phone at (866) 987-9473, or by email at <a href="mailto:tripwirehelp@dhs.gov">tripwirehelp@dhs.gov</a></p>';
+            array_splice($form, 2, 0, $g);
+        }
+        
+    }
+
+}
+
+/**
+ * Setup form submit handler for TW.
+ */
+function tw_tfa_basic_setup_form_submit($form, &$form_state) {
+    unset($_SESSION['messages']);
+    unset($_SESSION['status']);
+    drupal_set_message(t('Congratulations, you have successfully completed Two-Factor Authentication setup.  You can modify this setting from <a href="/user">My Account</a> under the Security tab.'));
+    $form_state['redirect'] = '/';
+}

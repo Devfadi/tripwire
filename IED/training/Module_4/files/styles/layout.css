@@ -1,0 +1,53 @@
+#viewport {
+    /*min-height: 900px;*/
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 0;
+    overflow: hidden;
+}
+#viewport a {
+    color: #FFF;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#viewport a:hover {
+    color: #CCC;
+    text-decoration: underline;
+}
+#viewport #krpanoDIV {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+.layer {
+    position: absolute;
+    z-index: 1;
+}
+.screen {
+    position: absolute;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+}
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 45;
+}
+img.bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+img.title {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    max-width: 1237px;
+    width: 100%;
+}

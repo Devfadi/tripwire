@@ -1,0 +1,8 @@
+name = Feeds TripWIRE Security Questions
+package = Feeds
+description = Adds TripWIRE Security Questions integration for Feeds.
+core = 7.x
+
+dependencies[] = feeds
+dependencies[] = tw_security_questions
+

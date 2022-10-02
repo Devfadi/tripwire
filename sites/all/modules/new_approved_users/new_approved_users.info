@@ -1,0 +1,10 @@
+name = New Approved Users
+core = 7.x
+package = Metrics
+dependencies[] = better_exposed_filters
+dependencies[] = views
+dependencies[] = views_data_export
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = new_approved_users
+features_exclude[dependencies][ctools] = ctools

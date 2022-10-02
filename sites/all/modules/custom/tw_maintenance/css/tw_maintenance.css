@@ -1,0 +1,4 @@
+input.form-submit.disabled {
+    opacity: .8;
+    cursor: default;
+}

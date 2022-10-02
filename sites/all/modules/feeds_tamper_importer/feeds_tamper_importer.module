@@ -1,0 +1,155 @@
+<?php
+
+/**
+ * @file
+ * Enables the functionality of importing feeds tamper plug-in.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function feeds_tamper_importer_init() {
+  module_load_include('inc', 'feeds_tamper', 'feeds_tamper.inc');
+}
+
+/**
+ * Implements hook_help().
+ */
+function feeds_tamper_importer_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/advanced_help/feeds_tamper_import':
+      $output = '<p>' . t('A short fallback description.') . '</p>';
+      if (function_exists('advanced_help_hint_docs')) {
+        $output .= '<p>' . advanced_help_hint_docs('feeds_tamper_importer',
+        'README.txt', TRUE) . '</p>';
+      }
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function feeds_tamper_importer_permission() {
+  return array(
+    'administer feeds_tamper_importer' => array(
+      'title' => t('Administer Feeds Tamper Importer'),
+      'description' => t('Import feeds tamper plugin.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function feeds_tamper_importer_menu() {
+  $items = array();
+  $items['admin/structure/feeds/%feeds_importer/tamper/import'] = array(
+    'title' => 'Import',
+    'title arguments' => array(),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_tamper_importer_import_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer feeds_tamper_importer'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+  return $items;
+}
+
+/**
+ * Form constructor for importer form.
+ *
+ * @see feeds_tamper_importer_import_form_validate()
+ * @see feeds_tamper_importer_import_form_submit()
+ *
+ * @ingroup forms
+ */
+function feeds_tamper_importer_import_form($form, &$form_state) {
+  $form['importer'] = array(
+    '#title' => t('Import Data'),
+    '#type' => 'textarea',
+    '#rows' => 10,
+    '#required' => TRUE,
+    '#description' => t('Paste the text created by a feeds tamper export into this field.'),
+  );
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+  return $form;
+}
+
+/**
+ * Form validation handler for feeds_tamper_importer_import_form_validate().
+ *
+ * @see feeds_tamper_importer_import_form_submit()
+ */
+function feeds_tamper_importer_import_form_validate($form, &$form_state) {
+  if ($form_state['triggering_element']['#value'] == t('Import')) {
+    if (!empty($form_state['values']['importer'])) {
+      $export = NULL;
+      ob_start();
+      eval($form_state['values']['importer']);
+      ob_end_clean();
+      $form_state['export'] = $export;
+      if (!is_array($export)) {
+        return form_set_error($form['importer'], t('Unable to interpret Feeds tamper importer code.'));
+      }
+      if (!empty($export)) {
+        foreach ($export as $value) {
+          $feeds_importer = feeds_importer_load($value->importer);
+          if (!empty($feeds_importer)) {
+            if (feeds_tamper_load_instance($value->id)) {
+              form_set_error('importer', t('The machine-readable name is already in use. It must be unique.'));
+              return;
+            }
+            $plugin_id = $value->plugin_id;
+            $plugin = feeds_tamper_get_plugin($plugin_id);
+            if ($plugin['validate'] && isset($value->settings)) {
+              $plugin['validate']($value->settings);
+            }
+          }
+          else {
+            form_set_error('importer', t('The feeds importer !importer does not exist', array('!importer' => $value->importer)));
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Form submission handler for feeds_tamper_importer_import_form_submit().
+ *
+ * @see feeds_tamper_importer_import_form_validate()
+ */
+function feeds_tamper_importer_import_form_submit($form, &$form_state) {
+  if ($form_state['triggering_element']['#value'] == t('Import')) {
+    $export = $form_state['export'];
+    foreach ($export as $value) {
+      $obj = feeds_tamper_new_instance();
+      $obj->plugin_id = $value->plugin_id;
+      if (isset($value->settings)) {
+        $obj->settings = $value->settings;
+      }
+      $obj->importer = $value->importer;
+      $obj->source = $value->source;
+      $obj->description = $value->description;
+      $obj->id = $value->id;
+      $obj->weight = $value->weight;
+      feeds_tamper_save_instance($obj);
+      $source_name = feeds_tamper_ui_source_name($obj);
+      drupal_set_message(t('Plugin %description was successfully added to %source.',
+        array(
+          '%description' => $obj->description,
+          '%source' => $source_name,
+        )
+      ));
+    }
+  }
+  $form_state['redirect'] = 'admin/structure/feeds/' . $obj->importer . '/tamper';
+}

@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Contains code for TFA self-setup.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function tfa_basic_self_setup_enable() {
+
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array(
+    'setup own tfa',
+  ));
+
+}

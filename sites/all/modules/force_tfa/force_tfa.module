@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function force_tfa_menu() {
+  $items['admin/config/people/force-tfa'] = [
+    'title' => 'Force TFA settings',
+    'description' => 'Configure the settings for the Force TFA module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['force_tfa_adminform'],
+    'access arguments' => ['admin tfa settings'],
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function force_tfa_page_alter() {
+  if (variable_get('tfa_enabled', FALSE) == FALSE) {
+    return;
+  }
+
+  global $user;
+  $user_tfa = tfa_basic_get_tfa_data($user);
+
+  $tfa_vis = _force_tfa_visibility_pages();
+  if (!empty($tfa_vis)) {
+  //if (!empty(_force_tfa_visibility_pages())) {
+    $page_force = FALSE;
+  }
+  else {
+    $page_force = TRUE;
+  }
+
+  $tfa_roles = _force_tfa_visibility_roles($user);
+  if (!empty($tfa_roles)) {
+  //if (!empty(_force_tfa_visibility_roles($user))) {
+    $role_force = TRUE;
+  }
+  else {
+    $role_force = FALSE;
+  }
+
+  if (isset($user_tfa['status']) && $user_tfa['status']) {
+    $tfa_force = FALSE;
+  }
+  else {
+    $tfa_force = TRUE;
+  }
+
+  if ($page_force && $role_force && $tfa_force) {
+    drupal_set_message("You must set up Two Factor Authentication for access to this site!");
+    drupal_goto('user/' . $user->uid . '/security/tfa');
+  }
+
+}
+
+/**
+ * admin settings
+ */
+function force_tfa_adminform($form, &$form_state) {
+  $role_options = array_map('check_plain', user_roles(TRUE));
+  $form['force_tfa_roles'] = [
+    '#type' => 'checkboxes',
+    '#title' => t('Force TFA on the following roles'),
+    '#default_value' => variable_get('force_tfa_roles'),
+    '#options' => $role_options,
+    '#description' => t('The above roles will be forced to the TFA setup page after login.'),
+  ];
+
+  $form['force_tfa_pages'] = [
+    '#type' => 'textarea',
+    '#title' => t('Allow access to the following paths'),
+    '#default_value' => variable_get('force_tfa_pages', ['user/*/security/tfa']),
+    '#description' => t('The above pages are the only pages this role will be permitted to see without setting up TFA.'),
+  ];
+
+  return system_settings_form($form);
+}
+
+/**
+ * Based on visibility setting this function returns TRUE if force_tfa should
+ * allow this page and otherwise FALSE.
+ */
+function _force_tfa_visibility_pages() {
+  static $force_tfa_page_match;
+
+  // Cache visibility result if function is called more than once.
+  if (!isset($page_match)) {
+
+    $setting_pages = variable_get('force_tfa_pages', "user/*\r\nuser/*/security/tfa");
+
+    // Match path if necessary.
+    if (!empty($setting_pages)) {
+      // Convert path to lowercase. This allows comparison of the same path
+      // with different case. Ex: /Page, /page, /PAGE.
+      $pages = drupal_strtolower($setting_pages);
+
+      // Convert the Drupal path to lowercase
+      $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+
+      // Compare the lowercase internal and lowercase path alias (if any).
+      $force_tfa_page_match = drupal_match_path($path, $pages);
+      if ($path != $_GET['q']) {
+        $force_tfa_page_match = $force_tfa_page_match || drupal_match_path($_GET['q'], $pages);
+      }
+
+    }
+    else {
+      $force_tfa_page_match = TRUE;
+    }
+
+  }
+  return $force_tfa_page_match;
+}
+
+/**
+ * Based on visibility setting this function returns TRUE if force_tfa code
+ * should be added for the current role and otherwise FALSE.
+ */
+function _force_tfa_visibility_roles($account) {
+  $enabled = FALSE;
+
+  $roles = variable_get('force_tfa_roles', []);
+
+  if (array_sum($roles) > 0) {
+    // One or more roles are selected.
+    foreach (array_keys($account->roles) as $rid) {
+      // Is the current user a member of one of these roles?
+      if (isset($roles[$rid]) && $rid == $roles[$rid]) {
+        // Current user is a member of a role that should be tracked/excluded from tracking.
+        $enabled = TRUE;
+        break;
+      }
+    }
+  }
+  else {
+    // No role is selected for tracking, therefore all roles should be tracked.
+    $enabled = TRUE;
+  }
+
+  return $enabled;
+}

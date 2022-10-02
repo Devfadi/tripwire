@@ -1,0 +1,16 @@
+name = Reports Views
+description = All reports and library and video
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = views_infinite_scroll
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = all_reports
+features[views_view][] = emergency_responder_notes_erns_
+features[views_view][] = reports
+features[views_view][] = tripwire_library_list_view
+features[views_view][] = tripwire_video_list_view
+features[views_view][] = tripwire_weekly_and_monthly_
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][views] = views

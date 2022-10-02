@@ -1,0 +1,14 @@
+name = "TFA Basic Self-setup"
+description = "Allows users to easily self-setup for TFA, without admin intervention."
+core = 7.x
+
+dependencies[] = tfa
+dependencies[] = tfa_basic
+
+
+; Information added by Drupal.org packaging script on 2018-03-12
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "tfa_basic_self_setup"
+datestamp = "1520872383"
+

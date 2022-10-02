@@ -1,0 +1,51 @@
+<?php
+
+function tw_errormessage_form_alter(&$form, &$form_state, $form_id) {
+  if($form_id == 'user_login_block' || $form_id == 'user_login') {
+    $form['#validate'] = array('user_login_authenticate_validate', 'user_login_final_validate', 'user_login_name_validate', 'tw_errormessage_login_validate');
+  }
+}
+function tw_errormessage_login_validate($form, &$form_state) {
+  $uid = _tw_errormessage_is_user_exists($form_state['values']['name']);
+  if(!$uid) {
+    $errors = drupal_get_messages('error');
+    foreach($errors['error'] as $error) {
+      if (strpos($error, 'unrecognized username or password') !== false) {
+        drupal_set_message('Please verify that your username and password are correct. Call the TRIPwire Help Desk at 1-866-987-9473 from 8 AM - 5 PM Eastern for assistance. <br /><br />Note: Passwords are case-sensitive.', 'error');
+      } else {
+        drupal_set_message($error, 'error');
+      }
+    }
+  }
+  else {
+    if(!user_authenticate($form_state['values']['name'], $form_state['values']['pass'])) {
+      $errors = drupal_get_messages('error');
+      if (!empty($errors)) {
+        foreach($errors['error'] as $error) {
+          if (strpos($error, 'unrecognized username or password') !== false) {
+            drupal_set_message('Please verify that your username and password are correct. Call the TRIPwire Help Desk at 1-866-987-9473 from 8 AM - 5 PM Eastern for assistance. <br /><br />Note: Passwords are case-sensitive.', 'error');
+          } else if (strpos($error, 'failed login attempts for this account. It is temporarily blocked') !== false) {
+            drupal_set_message($error, 'error');
+          } else {
+            drupal_set_message($error, 'error');
+          }
+        }
+      }
+    }
+  }
+}
+/**
+ * Query user table to check if such username is already exists.
+ */
+function _tw_errormessage_is_user_exists($username) {
+  return db_query("SELECT u.uid FROM {users} u WHERE LOWER(u.name) = LOWER(:username)", array(':username'=>$username))->fetchField();
+}
+
+/**
+ * Invoke HOOK_user_logout
+ */
+function tw_errormessage_user_logout($account) {
+  if (!$_REQUEST['form_id'] == 'user_login') {
+    user_cookie_save(array('tripwire.jsmessage' => 'Thank you for using TRIPwire. You have now signed out of TRIPwire Portal.'));
+  }
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the File Depot Views feature.
+ */
+
+include_once 'file_depot_views.features.inc';

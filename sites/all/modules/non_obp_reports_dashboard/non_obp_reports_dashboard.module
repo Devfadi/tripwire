@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Non-OBP Reports Dashboard feature.
+ */
+
+include_once 'non_obp_reports_dashboard.features.inc';

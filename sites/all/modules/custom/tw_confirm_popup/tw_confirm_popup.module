@@ -1,0 +1,17 @@
+<?php
+
+/*
+ * Implements hook_form_BASE_FORM_ID_alter()
+ */
+
+function tw_confirm_popup_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == 'views_form_email_blast_page_1') {
+        drupal_add_css(drupal_get_path('module', 'tw_confirm_popup') . '/css/confirm_popup.css');
+        if (isset($form['#vbo_confirm_form_title'])) {
+            if ($form['#vbo_confirm_form_title'] == 'Are you sure you want to perform <em class="placeholder">Send e-mail</em> on the selected items?') {
+                drupal_add_js(drupal_get_path('module', 'tw_confirm_popup') . '/js/confirm-popup.js');
+                
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the User Status History feature.
+ */
+
+include_once 'user_status_history.features.inc';

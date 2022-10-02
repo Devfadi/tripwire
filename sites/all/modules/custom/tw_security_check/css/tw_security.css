@@ -1,0 +1,33 @@
+form.security-annual input[type="submit"] {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 10px 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+    -webkit-transition: 0.1s all linear;
+    -moz-transition: 0.1s all linear;
+    -ms-transition: 0.1s all linear;
+    -o-transition: 0.1s all linear;
+    transition: 0.1s all linear;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    color: #fff;
+    background: #37474f;
+    box-shadow: none;
+    margin: 0;
+}
+
+.disabled {
+    background: gray !important;
+    cursor: default !important;
+  }

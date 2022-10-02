@@ -1,0 +1,237 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the tw_user_history module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function tw_user_history_schema() {
+    $schema['tw_user_history'] = array(
+      'description' => 'Stores tw_user_history data.',
+      'fields' => array(
+        'hid' => array(
+          'description' => 'The primary identifier for a user change.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE),
+        'uid' => array(
+          'description' => 'Unique user ID.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0),
+        'type' => array(
+          'description' => 'The type of change that occured.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+          'default' => ''),
+        'log' => array(
+          'description' => 'Description of the change.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'default' => ''),
+        'timestamp' => array(
+          'description' => 'A Unix timestamp indicating when this version was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'default' => 0),
+          'name' => array(
+            'type' => 'varchar',
+            'length' => 60,
+            'not null' => TRUE,
+            'default' => '',
+            'description' => 'Unique user name.'),
+          'account_state' => array(
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+            'default' => 0,
+            'description' => 'Account state.'),
+          'current_account_status' => array(
+            'type' => 'varchar',
+            'length' => 120,
+            'not null' => TRUE,
+            'default' => '',
+            'description' => 'Account status.'),
+          'old_account_status' => array(
+            'type' => 'varchar',
+            'length' => 120,
+            'not null' => TRUE,
+            'default' => '',
+            'description' => 'Old Account status.'),
+          'account_type' => array(
+            'type' => 'varchar',
+            'length' => 240,
+            'not null' => TRUE,
+            'default' => '',
+            'description' => 'Account Type.'),
+          'author' => array(
+              'type' => 'varchar',
+              'length' => 60,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'User name who made the change.'),
+        ),
+        'primary key' => array('hid'),
+
+        $schema['tw_admin_history'] = array(
+          'description' => 'Stores admin tracking data.',
+          'fields' => array(
+            'eid' => array(
+              'description' => 'The primary identifier for a logging event.',
+              'type' => 'serial',
+              'unsigned' => TRUE,
+              'not null' => TRUE),
+            'uid' => array(
+              'description' => 'Unique user ID.',
+              'type' => 'int',
+              'unsigned' => TRUE,
+              'not null' => TRUE,
+              'default' => 0),
+            'session_id' => array(
+              'description' => 'Session ID hash.',
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => ''),
+            'action' => array(
+              'description' => 'Type of action taken.',
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => ''),
+            'timestamp' => array(
+              'description' => 'A Unix timestamp indicating when this event was created.',
+              'type' => 'int',
+              'not null' => TRUE,
+              'default' => 0),
+            'name' => array(
+              'type' => 'varchar',
+              'length' => 60,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Unique user name.'),
+            'page_label' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Page title.'),
+            'url' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'URL Path.'),
+            'item_id' => array(
+              'type' => 'varchar',
+              'length' => 240,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Document ID.'),
+            'role' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'User Role.'),
+            'error_message' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Error Message.'),
+             'search' => array(
+              'type' => 'varchar',
+              'length' => 1024,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Search string'),
+            ),
+            'primary key' => array('eid'),
+        ),
+        $schema['tw_status_history'] = array(
+          'description' => 'Stores user status history.',
+          'fields' => array(
+            'sid' => array(
+              'description' => 'The primary identifier for a logging user status.',
+              'type' => 'serial',
+              'unsigned' => TRUE,
+              'not null' => TRUE),
+            'name' => array(
+              'description' => 'UserName.',
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => ''),
+            'status' => array(
+              'description' => 'User Status.',
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => ''),
+            'state' => array(
+              'type' => 'varchar',
+              'length' => 60,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'User state.'),
+            'roles' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'User roles.'),
+            'fed_region' => array(
+              'type' => 'varchar',
+              'length' => 255,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Federal Region of the user.'),
+            'timestamp' => array(
+              'description' => 'A Unix timestamp indicating when this status was logged.',
+              'type' => 'int',
+              'not null' => TRUE,
+              'default' => 0),
+            'drupal_status' => array(
+              'type' => 'varchar',
+              'length' => 1024,
+              'not null' => TRUE,
+              'default' => '',
+              'description' => 'Drupal core user status'),
+            ),
+            'primary key' => array('sid'),
+        ),
+      );
+    return $schema;
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function tw_user_history_install() {
+  db_update('system')
+  ->fields(array('weight' => -5))
+  ->condition('name', 'tw_user_history', '=')
+  ->execute();
+
+  db_update('system')
+  ->fields(array('weight' => -5))
+  ->condition('name', 'tw_admin_history', '=')
+  ->execute();
+}
+
+/**
+* Implementation of hook_uninstall().
+*/
+function social_site_uninstall() {
+    // Remove tables.
+    drupal_uninstall_schema('tw_user_history');
+    drupal_uninstall_schema('tw_admin_history');
+    }

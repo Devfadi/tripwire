@@ -1,0 +1,3 @@
+name = TripWire Activate User
+description = Activate imported TW 1.0 users
+core = 7.x

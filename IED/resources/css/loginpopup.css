@@ -1,0 +1,57 @@
+@charset "utf-8";
+/* CSS Document */
+body {
+	background-color:#fff;
+	/* background-attachment: scroll; */
+	background-image: url(../images/backgroundgradient.jpg);
+	background-repeat: repeat-x;
+	background-position: top;
+}
+.container_432 {
+	width:843px;
+	height:432px;
+	margin:0;
+	padding:0px;
+	background-color: #fff;
+}
+
+.container_600 {
+	width:843px;
+	height:600px;
+	margin:0;
+	padding:0px;
+	background-color: #fff;
+}
+
+.leftdiv {
+	width: 520px;
+	height: auto;
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:11.5px;
+	line-height:1.1;
+	overflow: auto;
+	float: left;
+	padding:10px;
+}
+.rightdiv {
+	width:auto;
+	height:auto;
+	float:right;
+	padding:50px 10px;
+	border:0 px;
+}
+.imagediv {
+	width:250px;
+	height:auto;
+	margin:0 px;
+	border:0 px;
+}
+
+.underline {
+	text-decoration:underline;
+}
+.title {
+	color:#ee0000;
+	font-size:16px;
+	font-weight:bold;
+}

@@ -1,0 +1,23 @@
+.options {
+    padding: 20px 0;
+} 
+
+.option-block {
+    width: 48%;
+    display: inline-block;
+    vertical-align: top;
+}
+.html .option-title h2 {
+    color: #264363;
+    font-size: 1.7em;
+}
+
+.options .new-user {
+    border-left: 1px solid #ccc;
+    padding-left: 60px;
+    width: 40%;
+}
+
+#breadcrumbs {
+    display: none;
+}

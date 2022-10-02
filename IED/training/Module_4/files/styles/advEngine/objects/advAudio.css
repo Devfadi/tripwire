@@ -1,0 +1,18 @@
+.adv-audio {
+    bottom: 0;
+    position: absolute;
+    z-index: 3;
+}
+.adv-audio div.jp-gui {
+    position: static;
+}
+div.jp-audio {
+    width: 128px;
+}
+div.jp-audio div.jp-type-single div.jp-interface {
+    height: 40px;
+}
+div.jp-audio ul.jp-controls {
+    padding: 0 0 0 42px;
+    width: 128px;
+}

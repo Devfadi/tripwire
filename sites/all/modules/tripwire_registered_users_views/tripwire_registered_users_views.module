@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the TripWIRE Registered Users Views feature.
+ */
+
+include_once 'tripwire_registered_users_views.features.inc';

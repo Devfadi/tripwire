@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Reports Views feature.
+ */
+
+include_once 'reports_views.features.inc';

@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function county_zip_menu() {
+  $items['api/county-zip'] = array(
+    'access callback' => true,
+    'page callback' => 'county_zip_json',
+    'delivery callback' => 'drupal_json_output',
+  );
+
+  return $items;
+}
+
+/**
+ * Callback function to return the data.
+ */
+function county_zip_json() {
+  $zipcode = isset($_GET['zip_code']) ? $_GET['zip_code'] : ""; 
+  $query = db_query("SELECT zip, county FROM county_zip where zip=".$zipcode);
+  $result = $query->fetchAll();
+  $json_object = json_encode($result);
+  echo $json_object;
+}
+
+
+
+

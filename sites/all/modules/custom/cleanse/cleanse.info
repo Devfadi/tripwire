@@ -1,0 +1,4 @@
+name = Cleanse
+description = Provides ability to scrub user data for development purposes
+core = 7.x
+

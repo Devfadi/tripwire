@@ -1,0 +1,36 @@
+.adv-notification {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #64ACD3;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    border: 1px solid white;
+    border-radius: 10px 10px 10px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    height: auto;
+    left: 1030px;
+    overflow: hidden;
+    padding: 10px;
+    position: absolute;
+    text-align: center;
+    top: 85px;
+    width: 135px;
+    z-index: 100;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;
+}
+.adv-notification.negative {
+    background-color: #C20000;
+}
+.adv-notification.positive {
+    background-color: #09C200;
+}
+.adv-notification.neutral {
+    background-color: #64ACD3;
+}

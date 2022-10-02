@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Code for the New Approved Users feature.
+ */
+
+include_once 'new_approved_users.features.inc';

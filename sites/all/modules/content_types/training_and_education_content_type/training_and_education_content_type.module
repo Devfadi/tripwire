@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Training and Education content type feature.
+ */
+
+include_once 'training_and_education_content_type.features.inc';

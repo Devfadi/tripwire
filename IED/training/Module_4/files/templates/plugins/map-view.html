@@ -1,0 +1,41 @@
+<div class="map-outer">
+    <div class="map-legend">
+        <h1>IED Type</h1>
+        <ul>
+            {{#each zone}}
+            <li>
+                <button data-blast-id="{{id}}" class="blast-btn"><div class="btn-content">{{name}}</div></button>
+            </li>
+            {{/each}}
+        </ul>
+    </div>
+    <div class="map-key">
+        <h1>Key</h1>
+        <div class="item danger">
+            <div class="item-box"> </div>
+            <div class="item-text">Mandatory Evacuation Distance</div>
+        </div>
+        <div class="item warning">
+            <div class="item-box"> </div>
+            <div class="item-text">Shelter-in-Place Zone</div>
+        </div>
+        <div class="item safe">
+            <div class="item-box"> </div>
+            <div class="item-text">Preferred Evacuation Distance</div>
+        </div>
+    </div>
+    <div class="map">
+        <div class="blast-icon" style="top:{{position.top}}px;left:{{position.left}}px;"> </div>
+        {{#each zone}}
+        <div class="blast" id="{{id}}">
+            <div class="danger-zone"  style="top:{{../position.top}}px;left:{{../position.left}}px;height:{{zone_dead_d}}px;width:{{zone_dead_d}}px;margin-top:-{{zone_dead_r}}px;margin-left:-{{zone_dead_r}}px;border-radius:{{zone_dead_r}}px;"> </div>
+            <div class="warning-zone" style="top:{{../position.top}}px;left:{{../position.left}}px;height:{{zone_warn_d}}px;width:{{zone_warn_d}}px;margin-top:-{{zone_warn_r}}px;margin-left:-{{zone_warn_r}}px;border-radius:{{zone_warn_r}}px;"> </div>
+            <div class="safe-zone"    style="top:{{../position.top}}px;left:{{../position.left}}px;height:{{zone_safe_d}}px;width:{{zone_safe_d}}px;margin-top:-{{zone_safe_r}}px;margin-left:-{{zone_safe_r}}px;border-radius:{{zone_safe_r}}px;"> </div>
+            <div class="dist-inner"   style="top:{{../position.top}}px;left:{{../position.left}}px;margin-left:{{pos_inner}}px;">{{tag_inner}}</div>
+            <div class="dist-outer"   style="top:{{../position.top}}px;left:{{../position.left}}px;margin-left:{{pos_outer}}px;">{{tag_outer}}</div>
+        </div>
+        {{/each}}
+        <img src="{{image}}">
+    </div>
+    <div class="map-close" style="">Close Map</div>
+</div>

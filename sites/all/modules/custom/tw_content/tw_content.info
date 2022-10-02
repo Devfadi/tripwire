@@ -1,0 +1,3 @@
+name = TripWire Content
+description = Provides custom changes for content on the site
+core = 7.x

@@ -1,0 +1,88 @@
+.adv-dp {
+    width: 780px;
+    padding: 15px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: none repeat scroll 0 0 #FFFFFF;
+    background: none repeat scroll 0 0 rgb(255,255,255);
+    background: none repeat scroll 0 0 rgba(255, 255, 255, 0.7);
+    z-index: 3;
+}
+.adv-dp-content {
+    margin: 0;
+    overflow: auto;
+    position: relative;
+    padding: 15px;
+    background: none repeat scroll 0 0 #27577d;
+    background: none repeat scroll 0 0 rgb(39, 87, 125);
+    background: none repeat scroll 0 0 rgba(39, 87, 125, 0.75);
+}
+.adv-dp .stem {
+    background: none repeat scroll 0 0 #000000;
+    background: none repeat scroll 0 0 rgb(0, 0, 0);
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.75);
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 2;
+    margin: 0;
+    padding: 0.5em;
+}
+.adv-dp ul.options {
+    width: 100%;
+    overflow: auto;
+    padding: 0px;
+    z-index: 2;
+}
+.adv-dp ul.options li {
+    font-size: 18px;
+    margin: 0px;
+    font-weight: normal;
+    z-index: 2;
+    padding: 0;
+}
+#viewport .adv-dp .options li a {
+    background: none repeat scroll 0 0 rgb(255, 255, 255);
+    background: none repeat scroll 0 0 rgba(255, 255, 255, 0.5);
+    /*box-shadow: 5px 5px 10px #000000;*/
+    display: block;
+    margin-top: 0.5em;
+    overflow: visible;
+    padding: 0.5em;
+    text-decoration: none;
+    -moz-border-radius: 12px;
+    -webkit-border-radius: 12px;
+    -khtml-border-radius: 12px;
+    border-radius: 12px;
+    color: #000;
+    text-decoration: none;
+}
+#viewport .adv-dp .options li a:hover {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-color: #000000;
+}
+#viewport .adv-dp .options li a.option-disabled, 
+#viewport .adv-dp .options li a.option-disabled:hover {
+    color: #BEBEBE;
+    cursor: default;
+}
+#viewport .adv-dp .options li a.option-hidden, 
+#viewport .adv-dp .options li a.option-hidden:hover {
+    display: none;
+}
+#viewport .adv-dp .options li a.adv-state-selected {
+    background-color: #F58400;
+}
+#viewport .adv-dp .options li a.option-disabled, 
+#viewport .adv-dp .options li a.option-disabled:hover {
+    background-color: rgb(0,0,0);
+    background-color: rgb(0,0,0,0.75);
+    cursor: default;
+    color: #BEBEBE;
+    cursor: default;
+}
+.adv-dp-button {
+    margin-top: .5em;
+}

@@ -1,0 +1,7 @@
+name = Osint map image
+core = 7.x
+package = Features
+dependencies[] = fe_block
+features[fe_block_boxes][] = osint_map_image
+features[fe_block_settings][] = block-osint_map_image
+features[features_api][] = api:2

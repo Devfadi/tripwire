@@ -1,0 +1,13 @@
+/* What's New Content Type */
+.node-what_s_new_article-form .field-name-field-pre-auth-carousel-tags .form-checkboxes,.node-what_s_new_article-form .field-name-field-pre-auth-carousel-tags label {
+    display: inline-block;
+}
+
+.node-what_s_new_article-form .field-name-field-federal-region, .node-what_s_new_article-form .field-name-field-state-province-region, .node-what_s_new_article-form .field-name-field-country {
+    float: left;
+    margin-left: 20px;
+}
+
+.node-what_s_new_article-form .vertical-tabs {
+    clear: both;
+}

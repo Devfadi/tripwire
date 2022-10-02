@@ -1,0 +1,23 @@
+#god-view {
+    left: 50px;
+    bottom: 0;
+    width: auto;
+    height: auto;
+}
+#god-menu {
+    background: none repeat scroll 0 0 #A09898;
+    color: black;
+    padding: 2px;
+    width: 400px;
+}
+#god-menu p {
+    padding-bottom: .25em;
+}
+#tabs-god-state p {
+    border-bottom: 1px dashed #000;
+    padding: .5em;
+    margin: 0 0 5px 0;
+}
+#tabs-god-state p span {
+    float: right;
+}

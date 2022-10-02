@@ -1,0 +1,10 @@
+name = Account Action Log
+core = 7.x
+package = Features
+dependencies[] = fe_block
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[fe_block_settings][] = views-account_action_log-block_1
+features[features_api][] = api:2
+features[views_view][] = account_action_log
+features_exclude[dependencies][ctools] = ctools

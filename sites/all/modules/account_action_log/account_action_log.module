@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Account Action Log feature.
+ */
+
+include_once 'account_action_log.features.inc';

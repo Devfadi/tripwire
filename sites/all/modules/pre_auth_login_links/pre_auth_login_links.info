@@ -1,0 +1,10 @@
+name = Pre-Auth Login Links
+description = Provides blocks and block settings for login and register links on pre-auth pages
+core = 7.x
+package = Features
+dependencies[] = fe_block
+features[fe_block_boxes][] = custom_login
+features[fe_block_boxes][] = custom_register
+features[fe_block_settings][] = block-custom_login
+features[fe_block_settings][] = block-custom_register
+features[features_api][] = api:2

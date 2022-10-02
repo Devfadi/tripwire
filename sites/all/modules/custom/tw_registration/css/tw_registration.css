@@ -1,0 +1,379 @@
+.page-user-register .region-content #block-system-main {
+  background: #fff;
+  overflow: hidden;
+}
+
+.page-user-register form {
+  /*padding-top: 20px;*/
+}
+
+.region.region-content .wizard-trail {
+  padding: 20px 5px 20px 5px;
+  background: #304d66;
+  border-radius: 2px 2px 0px 0px;
+  color: #fff;
+  font-size: 100%;
+  font-family: 'Arial', sans-serif;
+}
+
+.region.region-content .wizard-trail a, .region.region-content .wizard-trail a:hover {
+  color: #fff;
+  padding: 10px 10px 25px;
+  border-radius: 5px 5px 0 0;
+}
+
+.region.region-content .wizard-trail-current {
+  font-weight: normal;
+  background: #fff;
+  color: #000;
+}
+
+.region.region-content .wizard-trail-current a, .region.region-content .wizard-trail-current a:hover {
+  color: #000;
+}
+
+.region.region-content .wizard-trail-previous::after {
+  font-family: FontAwesome;
+  content: "\f00c";
+  margin-left: 5px;
+  color: green;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#edit-password-reset { 
+  float: right;
+  width: 50%;
+  margin: 20px 0 0 50px;
+  border: 0 none;
+}
+
+#edit-password-reset legend {
+  background: transparent;
+  border: 0 none;
+}
+
+.page-user-register input[type="submit"] {
+      font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 10px 20px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.1);
+    -webkit-transition: 0.1s all linear;
+    -moz-transition: 0.1s all linear;
+    -ms-transition: 0.1s all linear;
+    -o-transition: 0.1s all linear;
+    transition: 0.1s all linear;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    color: #fff;
+    background: #37474f;
+    box-shadow: none;
+    margin: 0;
+}
+
+.page-user-register input#edit-previous {
+  margin-right: 10px;
+}
+
+.page-user-register input[type="submit"]:hover {
+  background: #151a1d;
+  box-shadow: none;
+  border-radius: 3px;
+}
+
+.page-user-register form label {
+  margin: 20px 0;
+  font-size: 1.2em;
+  font-family: 'robotobold';
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin: 0 0 10px 0;
+  width: 100%;
+}
+
+.disabled {
+  background: gray !important;
+  cursor: default !important;
+}
+
+#user-register-form input.form-text, #user-register-form select.form-select {
+  border: 1px solid #e5e5e5;
+  padding: 0 10px;
+  height: 35px;
+  border-radius: 4px;
+  color: #000;
+}
+
+pre.privacyagreement {
+  background: transparent;
+  text-shadow: 0 none;
+  border: 0 none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.group-profile-left {
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+  margin-right: 3%;
+  padding-top: 1%;
+}
+
+.group-profile-right {
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+  padding-top: 1%;
+}
+
+#edit-profile-confirmation input.form-submit { display: none; }
+#edit-profile-confirmation input.form-text {
+  background: gray !important;
+  cursor: default !important;
+  color: #ccc;
+}
+#edit-profile-confirmation select {
+  background: gray !important;
+  color: #ccc;
+}
+
+.profile-section {
+  margin: 20px 0;
+}
+
+.profile-section .profile-body {
+  -webkit-column-count: 2; /* Chrome, Safari, Opera */
+    -moz-column-count: 2; /* Firefox */
+    column-count: 2;
+    margin: 10px 0;
+}
+
+.profile-section .row {
+  margin: 10px 0;
+  break-inside: avoid-column;
+  -webkit-column-break-inside: avoid; /* Chrome, Safari */
+    page-break-inside: avoid;         
+    display:table; 
+}
+
+.profile-section .row label {
+  margin: 0 0 5px 0;
+}
+
+.namealert {
+  color: red;
+}
+
+#user-register-form input.alertborder {
+  border-color: red;
+}
+
+.page-user-register .field-name-field-notes { display: none; }
+.page-user-register .horizontal-tabs ul.horizontal-tabs-list { display: none; }
+.page-user-register .horizontal-tabs fieldset.horizontal-tabs-pane { margin: 0; }
+
+
+.hsinreg #edit-tw-security-questions,
+.page-user-register .tw-security-q-wrapper {
+  float: right;
+  width: 45%;
+  border: 0 none;
+  z-index: 5;
+  padding-top: 20px;
+}
+
+.hsinreg legend,
+.page-user-register .tw-security-q-wrapper legend {
+  background: transparent;
+  text-shadow: none;
+  border: 0 none;
+}
+
+html.js .page-user-register .tw-security-q-wrapper .fieldset-legend {
+  background: none;
+  padding-left: 0;
+}
+
+html.js .page-user-edit .hsinreg .fieldset-legend a,
+html.js .page-user-register .tw-security-q-wrapper .fieldset-legend a {
+  color: #222;
+}
+
+/* TRIP2-408 */
+.hsinreg .fieldset-description,
+.page-user-register .tw-security-q-wrapper .fieldset-description {
+  color: green;
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* TRIP2-453 */
+.page-user-register #user-register-form .wizard-trail span, .page-user-register #user-register-form .wizard-trail li {
+  color: #fff;
+}
+
+.page-user-register #user-register-form .wizard-trail span.wizard-trail-current, .page-user-register #user-register-form .wizard-trail li a.active {
+  color: #000;
+  background: #fff;
+  padding: 10px 10px 25px;
+  border-radius: 5px 5px 0 0;
+}
+
+.page-user-register .region-content-top .block-multipage-jumplist {
+  display: none;
+}
+
+.page-user-register #user-register-form .wizard-trail li {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.page-user-edit.page-user-register ul.secondary li { display: inline-block; }
+.page-user-edit.page-user-register ul.secondary li a { float: none; }
+
+.page-user-register #user-register-form .wizard-trail li:after {
+  content: ' » ';
+}
+
+.page-user-edit.page-user-register ul.secondary li:after { color: #fff; }
+
+.page-user-register #user-register-form .wizard-trail li.last:after {
+  content: ''
+}
+
+.field-group-multipage.group-pageone #edit-profile-personal-information .fieldset-wrapper .form-wrapper {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.field-group-multipage.group-pageone #edit-profile-personal-information .field-type-text, .field-group-multipage.group-pageone #edit-profile-personal-information .field-type-list-text {
+  width: 46%;
+}
+
+.page-user-register #user-register-form div.horizontal-tabs {
+  border: 0 none;
+}
+
+.page-user-register form#user-register-form {
+  border: 1px solid #ccc; 
+}
+
+.page-user-register h2.multipage-pane-title {
+  margin-left: 1em;
+}
+
+.page-user-register .fieldset-wrapper {
+  margin-top: 0;
+}
+
+.page-user-register fieldset#edit-profile-personal-information, .page-user-register fieldset#edit-profile-employment-information {
+  padding-top: 20px;
+}
+
+.page-user-register fieldset#edit-profile-indicate-evc, .confirmation-values { 
+  padding-top: 40px;
+}
+
+.confirmation-values .undefined {
+  display: none;
+}
+
+.confirmation-values .page-header h2 {
+  margin: 20px 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.confirmation-values .page-header {
+  display: inline-block;
+  width: 45%;
+  vertical-align: top;
+}
+
+.page-user-register .multipage-pane-wrapper .fieldset-description {
+  display: none;
+}
+
+.page-user-register .multipage-pane-wrapper .tw-security-q-wrapper .fieldset-description {
+  display: block;
+}
+
+.page-user-register .field-name-field-privacy-act-statement {
+  padding-left: 20px;
+}
+
+.multipage-controls-list {
+  width: 350px;
+}
+
+.multipage-controls-list #edit-actions {
+  float: right;
+  margin: 0;
+  padding-top: 0;
+}
+
+.multipage-controls-list .multipage-button {
+  float: left;
+}
+
+.multipage-controls-list .multipage-button {
+  line-height: normal;
+}
+.multipage-controls-list .multipage-button input.form-submit {
+  padding: 10px 20px 11px;
+  margin-top: 0;
+  text-transform: uppercase;
+  font-weight: normal;
+  line-height: normal;
+}
+
+.multipage-controls-list .multipage-button input.form-submit.disabled {
+  color: #f1f1f1;
+  text-shadow: none;
+  opacity: 0.4;
+}
+
+/* T2OM-45: Hide recover password tab link */
+body.page-user .tabs-wrapper .primary li a[href="/user/password"] {
+  display: none;
+}
+
+/* T2OM-164: Subscriptions tab */
+.page-user-register #edit-profile-my-tripwire-subscriptions .field-type-taxonomy-term-reference {
+  display: inline-block;
+  vertical-align: top;
+  width: 30%;
+}
+
+.page-user-register #edit-profile-my-tripwire-subscriptions .field-type-taxonomy-term-reference > .form-type-checkboxes label:first-child {
+  color: #333 !important;
+  font-family: 'robotobold';
+}
+
+.page-user-register form #edit-profile-my-tripwire-subscriptions .field-type-taxonomy-term-reference .form-item label {
+  font-family: 'robotoregular';
+}
+
+.page-user-register #edit-profile-my-tripwire-subscriptions .field-name-field-caution-text {
+  margin-top: 35px;
+}
+
+.page-user-register #edit-profile-my-tripwire-subscriptions .field-name-field-caution-text p {
+  color: green;
+  font-weight: bold;
+  font-size: 14px;
+}

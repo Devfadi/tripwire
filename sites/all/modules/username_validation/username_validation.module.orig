@@ -1,0 +1,167 @@
+<?php
+
+/**
+ * @file
+ * Username validation module file.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function username_validation_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/help#username_validation':
+      $output = '<p>' . t('This module helps to validate username with min/max characters,blacklist special characters,significant words.') . '</p>';
+      $output .= '<p>' . t('Validate the username By:') . '</p>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('Special Character & blacklisted words.') . '</li>';
+      $output .= '<li>' . t('Length (optionally specify min and/or max length.)') . '</li>';
+      $output .= '</ul>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function username_validation_permission() {
+  return array(
+    'username validation config' => array(
+      'title' => t('Configuration page of username validation'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function username_validation_menu() {
+  $items = array();
+  $items['admin/config/people/username-validation'] = array(
+    'title' => 'Username validation',
+    'description' => 'Validating username',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_username_validation_admin_form'),
+    'access arguments' => array('username validation config'),
+    'file' => 'username_validation.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_form_alter().
+ */
+function username_validation_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_profile_form' || $form_id == 'user_register_form') {
+    $username_config = variable_get('username_validation_config', array());
+    $username_validation_rule = variable_get('username_validation_rule', array());
+    $username_ajax = isset($username_validation_rule['ajax_validation']) ? $username_validation_rule['ajax_validation'] : '';
+    //checking the configuration is enabled for ajax validation
+    if ($username_ajax == 1) {
+      $form['account']['name']['#suffix'] = "<div id='username-validation-ajax'></div>";
+      $form['account']['name']['#ajax'] = array(
+        'callback' => 'username_validation_ajax',
+        'event' => 'change',
+      );
+    }
+    if (isset($username_config['user_label']) && !empty($username_config['user_label'])) {
+      $form['account']['name']['#title'] = $username_config['user_label'];
+    }
+    if (isset($username_config['user_desc']) && !empty($username_config['user_desc'])) {
+      $form['account']['name']['#description'] = $username_config['user_desc'];
+    }
+    $form['#validate'][] = 'username_validation_username_validate';
+  }
+}
+
+/**
+ * @param array $form
+ * @param array $form_state
+ * @return array
+ * Ajax callback for validating the username
+ */
+function username_validation_ajax(&$form, &$form_state) {
+  $username_validation_rule = variable_get('username_validation_rule', array());
+  $label = $form['account']['name']['#title'];
+  $username = $form_state['values']['name'];
+  $min_char = $username_validation_rule['min_char'];
+  $max_char = $username_validation_rule['max_char'];
+  $findings = null;
+  $blacklist_char = isset($username_validation_rule['blacklist_char']) ? $username_validation_rule['blacklist_char'] : '';
+  if (!empty($blacklist_char)) {
+    // Replace \r\n with comma.
+    $blacklist_char = str_replace("\r\n", ',', $blacklist_char);
+    // Store into array.
+    $blacklist_char = explode(',', $blacklist_char);
+    // Find any exclude value found in username.
+    $findings = _username_validation_search_excludes_in_title($username, $blacklist_char);
+  }
+  $commands = array();
+  $commands[] = ajax_command_replace('#username-validation-ajax', "<div id='username-validation-ajax'></div>");
+  if (strlen($username) < $min_char) {
+    $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'>" . $label . ' should have minimum of ' . $min_char . " characters</div>");
+  }
+  if (strlen($username) > $max_char) {
+    $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'>" . $label . ' should have maximum of ' . $max_char . " characters</div>");
+  }
+  if ($findings) {
+    $commands[] = ajax_command_replace("#username-validation-ajax", "<div id='username-validation-ajax'><div class ='messages error'> The characters/words are not allowed to enter in the username - " . $findings[0] . "</div>");
+  }
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function username_validation_username_validate($form, &$form_state) {
+  if ($form['#user_category'] !== 'account') { return; }
+  $username_validation_rule = variable_get('username_validation_rule', array());
+  $label = $form['account']['name']['#title'];
+  $username = $form_state['values']['name'];
+  $min_char = $username_validation_rule['min_char'];
+  $max_char = $username_validation_rule['max_char'];
+
+  $blacklist_char = isset($username_validation_rule['blacklist_char']) ? $username_validation_rule['blacklist_char'] : '';
+  if (!empty($blacklist_char)) {
+    // Replace \r\n with comma.
+    $blacklist_char = str_replace("\r\n", ',', $blacklist_char);
+    // Store into array.
+    $blacklist_char = explode(',', $blacklist_char);
+    // Find any exclude value found in username.
+    $findings = _username_validation_search_excludes_in_title($username, $blacklist_char);
+    if ($findings) {
+      form_set_error('name', t('The characters/words are not allowed to enter in the username - @findings', array('@findings' => implode(',', $findings))));
+    }
+  }
+  if (strlen($username) < $min_char) {
+    form_set_error('name', t($label . ' should have minimum of ' . $min_char . ' characters'));
+  }
+  if (strlen($username) > $max_char) {
+    form_set_error('name', t($label . ' should have maximum of ' . $max_char . ' characters'));
+  }
+}
+
+/**
+ * Helper function to find any exclude values in username.
+ */
+function _username_validation_search_excludes_in_title($input, $find) {
+  $findings = array();
+  // Finding characters in the node title.
+  foreach ($find as $char) {
+    // Check for single character.
+    if (drupal_strlen($char) == 1) {
+      if (strpos($input, trim($char)) !== FALSE) {
+        $findings[] = trim($char);
+      }
+    }
+  }
+  // Finding words in the node title.
+  $words = explode(',', $input);
+  foreach ($words as $word) {
+    $word = trim($word);
+    if (in_array($word, $find)) {
+      $findings[] = $word;
+    }
+  }
+
+  return $findings;
+}

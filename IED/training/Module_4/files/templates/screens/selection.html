@@ -1,0 +1,42 @@
+<div class="screen">
+    <img src="files/assets/images/fills/gradient.png" class="bg"/>
+    <img src="files/assets/images/gui/title.png" class="title" />
+    <div class="menu-box layer">
+    	<div class="menu-wrap">
+            <div class="menu-content"></div>
+            <div class="menu-footer"></div>
+            <div class="menu-corner"></div>
+        </div>
+        <div class="content-box">
+        	<div class="square-fit-height image-right">
+        		<div class="image-box">
+        		    <div class="image" style="background: white;"><img src="files/assets/images/screens/scenario_01/IntroImage.png" alt="" /></div>
+        		    <div class="corner-tr"></div>
+        		    <div class="corner-br"></div>
+        		    <div class="corner-bl"></div>
+        		</div>
+        	</div>
+        	<div class="menu-textbox fit-text">
+        	    <h1>Scenario Menu</h1>
+        	    <div class="menu-selections">
+        	        {{#each selections}}
+        	            <button class="{{styles}}{{#if attempted}}{{#if complete}}complete{{else}}failed{{/if}}{{else}}incomplete{{/if}}" {{#unless enabled}}disabled{{/unless}}>
+                            <div class="btn-content">{{name}}<span class="icon"></span></div>
+                        </button>
+        	            <!--<button class="{{styles}}{{#if complete}}complete{{else}}incomplete{{/if}}" {{#unless enabled}}disabled{{/unless}}><div class="btn-content">{{name}}<span class="icon"></span></div></button>-->
+        	        {{/each}}
+        	        {{#with certificate}}
+        	        <button id="certificate" class="{{styles}}" {{#unless enabled}}disabled{{/unless}}><div class="btn-content">Certificate</div></button>
+        	        {{/with}}
+        	    </div>
+        	</div>
+        </div>
+        <div class="menu-buttons">
+            <button class="back"><div class="btn-content">Back</div></button>   
+            {{#if enableHelpBtn}}<button class="help"><div class="btn-content">Help</div></button>{{/if}}
+            <button class="clear"><div class="btn-content">Restart</div></button>
+        </div>
+    </div>
+	<div class="fuou fuou-top">FOR OFFICIAL USE ONLY</div>
+	<div class="fuou fuou-bottom">FOR OFFICIAL USE ONLY</div>
+</div>

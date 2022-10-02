@@ -1,0 +1,9 @@
+#clock-view {
+    position: absolute;
+    width: 100px;
+    left: 0px;
+    top: 5px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+}

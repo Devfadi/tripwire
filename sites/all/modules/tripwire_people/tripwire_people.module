@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the TripWIRE People feature.
+ */
+
+include_once 'tripwire_people.features.inc';

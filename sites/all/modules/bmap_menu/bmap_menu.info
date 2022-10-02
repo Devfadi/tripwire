@@ -1,0 +1,13 @@
+name = BMAP Menu
+core = 7.x
+package = Features
+dependencies[] = fe_block
+dependencies[] = features
+dependencies[] = menu
+dependencies[] = superfish
+features[fe_block_settings][] = superfish-2
+features[features_api][] = api:2
+features[menu_custom][] = menu-bmap-menu
+features_exclude[menu_links][menu-bmap-menu_nationwide-suspicious-activity-reporting-nsi:http://nsi.ncirc.gov/] = menu-bmap-menu_nationwide-suspicious-activity-reporting-nsi:http://nsi.ncirc.gov/
+features_exclude[menu_links][menu-bmap-menu_homeland-security-information-network-hsin-community-of-interest-coi:http://hsin.dhs.gov] = menu-bmap-menu_homeland-security-information-network-hsin-community-of-interest-coi:http://hsin.dhs.gov
+features_exclude[menu_links][menu-bmap-menu_if-you-see-something-say-something:https://www.dhs.gov/see-something-say-something] = menu-bmap-menu_if-you-see-something-say-something:https://www.dhs.gov/see-something-say-something

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Admin Tracking Log feature.
+ */
+
+include_once 'admin_tracking_log.features.inc';

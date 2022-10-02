@@ -1,0 +1,21 @@
+.toboggan-unified #login-message {
+    text-align: center;
+    font-size: 2em;
+    line-height: 1.2;
+}
+
+.toboggan-unified #login-links {
+    text-align: center;
+    font-size: 1.5em;
+    line-height: 2.7;
+}
+
+.toboggan-unified #login-links a {
+    padding: .5em;
+}
+
+.toboggan-unified .item-list { margin-left: 20px; }
+.toboggan-unified .item-list .first { display: none; }
+
+/* Kill tabs */
+ul.tabs.primary, .tabs-wrapper { display: none; }

@@ -1,0 +1,71 @@
+
+#aar-screen h1 {
+    width: 100%;
+}
+#aar-screen h1 span {
+    float: right;
+}
+
+#aar-screen h2 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    padding-top: 1em;
+}
+#aar-screen h2 span {
+    float: right;
+    color: #FFCC00;
+}
+#aar-screen .ignored, 
+#aar-screen .failure {
+  background: #E10019;
+  color: #000;
+  text-align: center;
+  font-weight: bold;
+  vertical-align: middle;
+}
+#aar-screen .success {
+  color: #000;
+  background: #00FF00;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+}
+#aar-screen .adv-review ul {
+    list-style: disc inside none;
+    padding-left: 1em;
+}
+#aar-screen .adv-review .correct {
+    color: #00ff00;
+    text-shadow: 0 0 1px #000;
+}
+#aar-screen .adv-review .incorrect {
+    color: #e10019;
+    text-shadow: 0 0 1px #000;
+}
+.underline {
+    text-decoration:underline
+}
+#aar-state .adv-review-state {
+    padding-left: 1em;
+}
+#aar-screen .menu-box {
+    top: 25px;
+}
+#aar-screen table {
+    width: 100%;
+}
+#aar-sceen table, #aar-screen th, #aar-screen td {
+    font-size: 16px;
+    border: 1px solid #FFF;
+}
+#aar-screen td {
+    padding: .5em;
+    text-align: left;
+}
+#aar-screen th {
+    background: white;
+    color: #27577d;
+    font-weight: bold;
+    padding: .5em;
+    text-align: center;
+}

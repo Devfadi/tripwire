@@ -1,0 +1,3 @@
+name = TripWire Blast Calculator
+description = Custom TripWire module that provides blast calculator block.
+core = 7.x

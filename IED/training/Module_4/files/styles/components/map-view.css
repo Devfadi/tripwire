@@ -1,0 +1,141 @@
+.map-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 0;
+    background: url('../../assets/images/gui/map-icon.png');
+    height: 137px;
+    width: 169px;
+}
+.map-view {
+    height: 100%;
+    width: 100%;
+    background: rgba(0,0,0,.5);
+}
+.map-outer {
+    background: #fff;
+    position: absolute;
+    height: 570px;
+    width: 970px;
+    top: 50%;
+    left: 50%;
+    margin-left: -500px;
+    margin-top: -300px;
+    padding: 15px;
+}
+.map {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    z-index:0;
+}
+.map img {
+    height:600px;
+}
+.map-view button {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #000;
+    border-radius: 15px;
+    font-weight: bold;
+    padding: 7px;
+    width: 100%;
+}
+.map-view button.active {
+    background: none repeat scroll 0 0 #f58400;
+}
+.map-view h1 {
+    background: none repeat scroll 0 0 #fff;
+    border-radius: 15px;
+    padding: 10px;
+}
+.map-view .map-legend {
+    position: absolute;
+    z-index: 9;
+    width: 170px;
+    padding: 15px;
+    left: 30px;
+    color: #000000;
+    text-align: center;
+    background: none repeat scroll 0px 0px rgba(0, 0, 0, 0.4);
+    height: 251px;
+    top: 30px;
+}
+.danger-zone, .warning-zone, .safe-zone, .dist-inner, .dist-outer {
+    position: absolute;
+}
+.danger-zone, .warning-zone, .safe-zone {
+    opacity: 0.5;
+}
+.safe-zone    { background: #00FF00; z-index: 1; }
+.warning-zone { background: #FFCC00; z-index: 2; }
+.danger-zone  { background: #E10019; z-index: 3; }
+.dist-inner, .dist-outer {
+    color: #000;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: -12px;
+    text-align: right;
+    width: 100px;
+    z-index: 4;
+}
+.blast-icon {
+    background-image: url('../../assets/images/icons/map-icon-062px.png');
+    height: 52px;
+    left: 769px;
+    margin-left: -12px;
+    margin-top: -45px;
+    position: absolute;
+    top: 220px;
+    width: 62px;
+    z-index: 5;
+}
+.map-view .map-key {
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.4);
+    bottom: 30px;
+    color: #000000;
+    height: 134px;
+    left: 30px;
+    padding: 15px;
+    position: absolute;
+    text-align: center;
+    width: 355px;
+    z-index: 9;
+}
+.safe .item-box {
+    background: none repeat scroll 0 0 #00ff00;
+}
+.warning .item-box {
+    background: none repeat scroll 0 0 #ffcc00;
+}
+.danger .item-box {
+    background: none repeat scroll 0 0 #e10019;
+}
+.item .item-box {
+    float: left;
+    height: 20px;
+    width: 40px;
+    border: 1px solid #000;
+}
+.item .item-text {
+    color: white;
+    font-size: 20px;
+    height: 30px;
+    text-align: left;
+    margin-left: 55px;
+}
+.map-close {
+    position: absolute;
+    height: 20px;
+    padding: 5px 5px 11px;
+    text-align: center;
+    border-radius: 18px;
+    font-weight: bold;
+    font-size: 24px;
+    background: none repeat scroll 0px 0px rgb(225, 0, 25);
+    border: 2px solid;
+    box-shadow: 5px 5px 5px rgb(0, 0, 0);
+    right: 10px;
+    bottom: 10px;
+    width: 130px;
+}
+

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the What's New Rotator feature.
+ */
+
+include_once 'what_s_new_rotator.features.inc';

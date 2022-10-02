@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Implementation hook_menu().
+ */
+function tw_activateuser_menu() {
+  $items = array();
+  
+  $items['activate'] = array(
+    'title' => 'TripWire User Activation',
+    'page callback' => 'tw_activateuser_activation',
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_activateuser.activate.inc',
+   );
+
+  $items['verify-user'] = array(
+    'title' => 'Verify TripWire User',
+    'page callback' => 'tw_activateuser_verify',
+    'page arguments' => array('1'),
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_activateuser.verify.inc',
+   );
+
+   $items['verify-user-check'] = array(
+    'title' => 'Verify TripWire User',
+    'page callback' => 'tw_activateuser_verifycheck',
+    'page arguments' => array('1'),
+    'access callback' => TRUE,
+    'access arguments' => array('access site content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_activateuser.verify.inc',
+   );
+
+   return $items;
+}

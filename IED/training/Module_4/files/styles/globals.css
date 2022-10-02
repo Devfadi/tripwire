@@ -1,0 +1,108 @@
+.reset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    line-height: 1.3;
+    text-decoration: none;
+    font-size: 100%;
+    list-style: none;
+}
+
+/**
+ * hide element completely, do not maintain layout
+ */
+.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+/*
+ * Hide only visually, but have it available for screen readers: h5bp.com/v
+ */
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+/*
+ * Extends the .visuallyhidden class to allow the element to be focusable
+ * when navigated to via the keyboard: h5bp.com/p
+ */
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+.invisible {
+    visibility: hidden;
+}
+
+/* Dimension */
+.width-100 { width: 100%; }
+.width-75  { width: 75%;  }
+.width-50  { width: 50%;  }
+
+/* Placement */
+.float-left  { float: left;  }
+.float-right { float: right; }
+
+/* Text Placement */
+.align-left  { text-align: left; }
+.align-right { text-align: right; }
+
+/* Text Size */
+.small { font-size: small; }
+.large { font-size: large; }
+
+/* Text Styles */
+.strong, .bold {
+    font-weight: bold;
+}
+
+/* justify all text, including last line */
+.justify {
+    text-align: justify;
+    text-align-after: justify; /* old IE */
+}
+.justify:after {
+    content: "";
+    display: inline-block;
+    width: 100%;
+}
+/**
+ * Clearfix
+ */
+.clearfix:after {
+    content: "\0020";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+    overflow: hidden;
+}
+.clearfix {
+    display: inline-block;
+}
+/* List Styles */
+ul.horizontal,
+ol.horizontal {
+    list-style-type: none;
+    display: inline;
+}
+ul.vertical,
+ol.vertical {
+    list-style-type: none;
+    display: block;
+}

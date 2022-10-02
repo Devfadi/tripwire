@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implementation of hook_menu()
+ */
+function tw_maintenance_menu()
+{
+	$menu['admin/config/system/tw_version'] = array
+	(
+		'title' => 'TRIPwire Version Settings',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('tw_maintenance_settings'),
+		'access arguments' => array('Administer force password change'),
+		'file' => 'tw_maintenance.admin.inc',
+  );
+  $menu['admin/reports/tw_version'] = array 
+  (
+    'title' => 'TRIPwire Version',
+    'page callback' => 'tw_maintenance_version',
+    'access arguments' => array('Administer force password change'),
+    'file' => 'tw_maintenance.pages.inc',
+  );
+	return $menu;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function tw_maintenance_form_system_site_maintenance_mode_alter(&$form, &$form_state) {
+
+    $form['warning_message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Warning message'),
+    '#description' => t('This message will be used to display to users to notify them of upcoming maintenance periods in which the system shall be unavailable to users.'),
+    '#rows' => 5,
+    '#required' => TRUE,
+    '#default_value' => variable_get('warning_message', 'Warning! Site will go into maintenance mode soon.'),
+  );
+
+  $options = array(
+      'activate' => t("Activate Message"),
+  );
+
+  $form['warning_activate'] = array(
+    '#type' => 'checkboxes',
+    //'#title' => t('Activate message'),
+    '#options' => $options,
+    '#default_value' => variable_get('warning_activate'),
+  );
+
+}
+
+/**
+ * Invoke HOOK_init
+ */
+function tw_maintenance_init() {
+  $activate = variable_get('warning_activate');
+  if(isset($activate['activate'])) {
+    if ($activate['activate'] !== 0) {
+      if($_SERVER['REQUEST_URI'] == '/user') {
+        $warning_message = variable_get('warning_message', 'Warning! Site will go into maintenance mode soon.');
+        drupal_set_message(check_plain(t($warning_message)), 'warning', FALSE);
+      }
+    }
+  }
+}

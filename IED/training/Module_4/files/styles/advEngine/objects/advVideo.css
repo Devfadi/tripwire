@@ -1,0 +1,6 @@
+.adv-video {
+    z-index: 50;
+}
+div.jp-audio, div.jp-audio-stream, div.jp-video {
+	border: 0px none;
+}

@@ -1,0 +1,14 @@
+form .container-inline-date {
+   display: inline-block;
+   vertical-align: top;
+    width: 200px;
+}
+
+form .container-inline-date .form-type-textfield label {
+    display: none;
+}
+
+#edit-submit {
+    display: block;
+    margin-top: 20px;
+}

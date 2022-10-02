@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Video Library Blocks feature.
+ */
+
+include_once 'video_library_blocks.features.inc';

@@ -1,0 +1,141 @@
+<?php
+/**
+ * @file
+ * Main module for Addressfield Geocomplete.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function addressfield_geocomplete_menu() {
+  $items['admin/config/services/addressfield-geocomplete'] = array(
+    'title' => 'Addressfield Geocomplete',
+    'description' => 'Configure <a href="https://ubilabs.github.io/geocomplete/">Geocomplete</a> and <a href="https://developers.google.com/places/">Google Places API</a> for use with Geocomplete.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addressfield_geocomplete_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'addressfield_geocomplete.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function addressfield_geocomplete_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'addressfield' && !empty($plugin)) {
+    return "plugins/$plugin";
+  }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function addressfield_geocomplete_libraries_info() {
+  $libraries = array();
+
+  // Geocomplete.
+  $libraries['geocomplete'] = array(
+    'name' => 'Geocomplete JavaScript Library',
+    'vendor url' => 'http://ubilabs.github.io/geocomplete/',
+    'download url' => 'http://github.com/ubilabs/geocomplete/tags',
+    'version arguments' => array(
+      'file' => 'jquery.geocomplete.js',
+      'pattern' => '/V\s+([0-9\.\ \-]+)/',
+      'lines' => 3,
+    ),
+    'files' => array(
+      'js' => array('jquery.geocomplete.js'),
+    ),
+    'variants' => array(
+      'minified' => array(
+        'files' => array(
+          'js' => array('jquery.geocomplete.min.js'),
+        ),
+      ),
+    ),
+    'integration files' => array(
+      'addressfield_geocomplete' => array(
+        'js' => array('js/addressfield_geocomplete.js'),
+      ),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ *
+ * The google places library can't be loaded after the document has finished
+ * loading (e.g. during an AJAX call) which typically happens with fields like
+ * paragraphs and field collection. To work around that we check the form widget
+ * and add the places library here.
+ *
+ * @todo how to check if paragraphs is the field and has an addressfield using
+ * geocomplete?  (for now load it everywhere).
+ */
+function addressfield_geocomplete_field_widget_form_alter(&$element, &$form_state, $context) {
+  if ($google_api_key = variable_get('addressfield_geocomplete_google_api_key', '')) {
+    $add_places_library = FALSE;
+
+    // If the geocomplete_block form element exists then add the Places library.
+    if (isset($element['geocomplete_block'])) {
+      $add_places_library = TRUE;
+    }
+    // An addressfield may be added to another field type that cannot as easily
+    // be evaluated. These include paragraphs, field_collection, etc. Based on
+    // the field info map, check if the field is added to the instance.
+    // Note: This is not perfect but should help limit including the library
+    // unecessarily.
+    else {
+      $fields_info_map = addressfield_geocomplete_get_addressfield_info_map();
+
+      // Paragraphs.
+      foreach ($fields_info_map as $field_name => $field_info) {
+        if ($context['field']['type'] == 'paragraphs' && in_array('paragraphs_item', array_keys($field_info))) {
+          $bundles = $field_info['paragraphs_item'];
+          $instance = $context['instance'];
+
+          if (!empty($instance['settings']) && !empty($instance['settings']['allowed_bundles'])) {
+            $allowed_bundles = $instance['settings']['allowed_bundles'];
+            if (array_intersect($bundles, $allowed_bundles)) {
+              $add_places_library = TRUE;
+            }
+          }
+        }
+      }
+    }
+
+    if ($add_places_library) {
+      $google_maps_endpoint_url = "https://maps.googleapis.com/maps/api/js?key={$google_api_key}&libraries=places";
+      drupal_add_js($google_maps_endpoint_url, array('type' => 'external'));
+    }
+  }
+}
+
+/**
+ * Helper function: Get address fields info map.
+ *
+ * To assist it determining whether the Google Places API library should be
+ * loaded we evaluate addressfield fields in a form alter. This function
+ * retrieve the field info map.
+ *
+ * @see addressfield_geocomplete_field_widget_form_alter()
+ */
+function addressfield_geocomplete_get_addressfield_info_map() {
+  $fields = &drupal_static(__FUNCTION__);
+
+  if (!isset($fields)) {
+    $info_map = field_info_field_map();
+    foreach ($info_map as $field_name => $field_info) {
+      if ($field_info['type'] == 'addressfield') {
+        $fields[$field_name] = $field_info['bundles'];
+      }
+    }
+  }
+
+  return $fields;
+}

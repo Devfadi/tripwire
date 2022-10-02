@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Personal Information profile feature.
+ */
+
+include_once 'personal_information_profile.features.inc';

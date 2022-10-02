@@ -1,0 +1,14 @@
+name = Addressfield Geocomplete
+description = Implements Geocomplete for Addressfield module.
+core = 7.x
+package = Fields
+configure = admin/config/services/addressfield-geocomplete
+dependencies[] = ctools
+dependencies[] = addressfield
+
+; Information added by Drupal.org packaging script on 2017-04-24
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "addressfield_geocomplete"
+datestamp = "1493010550"
+

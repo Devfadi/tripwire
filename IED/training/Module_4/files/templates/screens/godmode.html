@@ -1,0 +1,93 @@
+<div id="god-menu">
+    <ul>
+        <li><a href="#tabs-god-state">Status</a></li>
+        <li><a href="#tabs-god-buttons">Buttons</a></li>
+        <!--<li><a href="#tabs-god-clock">Clock</a></li>
+        <li><a href="#tabs-god-space">Transport</a></li>
+        -->
+    </ul>
+    <div id="tabs-god-state">
+        <p>Game State: <span id="game-state"></span></p>
+        <p>Scenario: <span id="fsm-game-state"></span></p>
+        <p>FSM game-view: <span id="fsm-game-view"></span></p>
+        <p>ADEN Time Game: <span class="aden-time-game"></span></p>
+        <p>ADEN Time Elapsed: <span class="aden-time-elapsed"></span></p>
+        <p>ADEN Time Ran: <span class="aden-time-ran"></span></p>
+        <p>Viewport: <span class="aden-viewport"></span></p>
+        <p>Docuement-Element: <span class="aden-document"></span></p>
+        <p>Window: <span class="aden-window"></span></p>
+        <!--<p>
+            Events:
+            <input id="eventSkip" type="button" value="Skip to next active timed event" />
+        </p>-->
+    </div>
+    <div id="tabs-god-buttons">
+        <button id="trigger-save-clear"><div class="btn-content">Clear Save Data</div></button>
+        <button id="trigger-set-complete"><div class="btn-content">Set All Complete</div></button>
+        <button id="trigger-get-view"><div class="btn-content">Get View Info</div></button>
+        <button id="trigger-video-pause"><div class="btn-content">Pause Video</div></button>
+        <button id="trigger-video-resume"><div class="btn-content">Resume Video</div></button>
+    </div>
+    <!--
+    <div id="tabs-god-clock">
+        <p>
+            Time:
+            <input type="button" value="Add 1 min" onclick="aden.clock.addTime('00:01:00.00')" />
+            <input type="button" value="Add 10 min" onclick="aden.clock.addTime('00:10:00.00')" />
+            <input type="button" value="Add 1 hour" onclick="aden.clock.addTime('01:00:00.00')" />
+            <input type="button" value="Stop" onclick="aden.clock.pause();" /> 
+            <input type="button" value="Start" onclick="aden.clock.start();" /> 
+        </p>
+        <p>
+            Speed:
+            <input type="button" value="1x" onclick="aden.clock.setSpeed(1)" />
+            <input type="button" value="2x" onclick="aden.clock.setSpeed(2)" />
+            <input type="button" value="5x" onclick="aden.clock.setSpeed(5)" />
+            <input type="button" value="10x" onclick="aden.clock.setSpeed(10)" />
+            <input type="button" value="20x" onclick="aden.clock.setSpeed(20)" />
+            <input type="button" value="30x" onclick="aden.clock.setSpeed(30)" />
+            <input type="button" value="60x" onclick="aden.clock.setSpeed(60)" />
+            <input type="button" value="90x" onclick="aden.clock.setSpeed(90)" />
+            <input type="button" value="120x" onclick="aden.clock.setSpeed(120)" />
+            <input type="button" value="240x" onclick="aden.clock.setSpeed(240)" />
+            <input type="button" value="480x" onclick="aden.clock.setSpeed(480)" />
+        </p>
+    </div>
+    <div id="tabs-god-space">
+        <p>
+            Locations:
+            <input type="button" value="Front"     onclick="aden.pano.load('frontnode01');"    />
+            <input type="button" value="Lobby 01"  onclick="aden.pano.load('lobbynode01');"    />
+            <input type="button" value="Lobby 02"  onclick="aden.pano.load('lobbynode02');"    />
+            <input type="button" value="Lobby 03"  onclick="aden.pano.load('lobbynode03');"    />
+            <input type="button" value="Lobby 04"  onclick="aden.pano.load('lobbynode04');"    />
+            <input type="button" value="Office 01" onclick="aden.pano.load('officenode01');"   />
+            <input type="button" value="Office 02" onclick="aden.pano.load('officenode02');"   />
+            <input type="button" value="Office 03" onclick="aden.pano.load('officenode03');"   />
+            <input type="button" value="Bay 01"    onclick="aden.pano.load('upperbaynode01');" />
+            <input type="button" value="Bay 02"    onclick="aden.pano.load('upperbaynode02');" />
+            <input type="button" value="Bay 03"    onclick="aden.pano.load('upperbaynode03');" />
+            <input type="button" value="Bay 04"    onclick="aden.pano.load('upperbaynode04');" />
+            <input type="button" value="Bay 05"    onclick="aden.pano.load('upperbaynode05');" />
+            <input type="button" value="Bay 06"    onclick="aden.pano.load('upperbaynode06');" />
+            <input type="button" value="Bay 07"    onclick="aden.pano.load('upperbaynode07');" />
+        </p>
+    </div>
+    <div id="tabs-god-other">
+        <p>
+            Add Overlays
+            <input type="button" value="bay1"   onclick="Actions.overlays.add('car1');" />
+            <input type="button" value="bay2"   onclick="Actions.overlays.add('car2');" />
+            <input type="button" value="bay3"   onclick="Actions.overlays.add('car3');" />
+            <input type="button" value="coffee" onclick="Actions.overlays.add('coffee');" /> 
+        </p>
+        <p>
+            Hide Overlays
+            <input type="button" value="bay1"   onclick="Actions.overlays.remove('car1');" />
+            <input type="button" value="bay2"   onclick="Actions.overlays.remove('car2');" />
+            <input type="button" value="bay3"   onclick="Actions.overlays.remove('car3');" />
+            <input type="button" value="coffee" onclick="Actions.overlays.remove('coffee');" /> 
+        </p>
+    </div>
+    -->
+</div>

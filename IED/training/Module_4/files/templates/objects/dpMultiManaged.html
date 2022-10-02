@@ -1,0 +1,17 @@
+<div class='decisionPoint'>
+    <div class='adv-dp-content'>
+        <p class='stem border-rounded question-text'>
+            {{{stem}}}
+        </p>
+        <ul class='options'>
+            {{#each options}}
+            <li class='option-text'>
+                <a href='#' id='{{event}}' class='border-rounded'>{{{text}}}</a>
+            </li>
+            {{/each}}
+            <div class='adv-dp-button' style='margin-top:10px;'>
+                Submit
+            </div>
+        </ul>
+    </div>
+</div>

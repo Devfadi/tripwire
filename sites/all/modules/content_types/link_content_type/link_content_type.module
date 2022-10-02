@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Link content type feature.
+ */
+
+include_once 'link_content_type.features.inc';

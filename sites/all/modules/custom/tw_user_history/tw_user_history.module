@@ -1,0 +1,1540 @@
+<?php
+
+/**
+ * Implementation of hook_menu() 
+ */
+function tw_user_history_menu()
+{
+	$menu['admin/config/people/tw_user_history'] = array
+	(
+		'title' => 'TRIPwire User History',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('tw_user_history_settings'),
+		'access arguments' => array('access administration pages'),
+		'file' => 'tw_user_history.pages.inc',
+  );
+  
+  $menu['admin/config/people/tw_dates_edit'] = array
+	(
+		'title' => 'TRIPwire User Date Editor',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('tw_user_history_edit_date'),
+		'access arguments' => array('administer users'),
+		'file' => 'tw_user_history.pages.inc',
+	);
+	return $menu;
+}
+
+function tw_user_history_user_login(&$edit, $account) {
+  // T2OM-49: Auto logging out any user with EVC Denied set for their EVC Status
+  if (isset($account->field_evc_status['und'])) {
+    $evc_term = taxonomy_get_term_by_name('EVC Denied', 'evc_status');
+    $evc_overdue_term = taxonomy_get_term_by_name('EVC Overdue', 'evc_status');
+    $evc_pending = taxonomy_get_term_by_name('EVC Pending', 'evc_status');
+    $evc_due = taxonomy_get_term_by_name('EVC Due', 'evc_status');
+    $evc_term = array_shift($evc_term);
+    $evc_overdue_term = array_shift($evc_overdue_term);
+    $evc_pending = array_shift($evc_pending);
+    $evc_due = array_shift($evc_due);
+    $tid_array = array($evc_term->tid, $evc_overdue_term->tid, $evc_pending->tid, $evc_due->tid);
+    if (in_array($account->field_evc_status['und'][0]['tid'], $tid_array)) {
+      setcookie('my_message', t("Please contact the TRIPwire Help Desk at 1-866-987-9473 from 8 AM - 5 PM Eastern for assistance."), time() + (86400 * 30), "/");
+      drupal_goto('/user/logout');
+    }
+  }
+  $data = array(
+    'uid' => $account->uid,
+    'type' => 'user_login',
+    'log' => 'Username ' . $account->name . ' was logged in.',
+    'timestamp' => REQUEST_TIME,
+    'name' => $account->name,
+    'account_state' => $account->status,
+    'current_account_status' => '',
+    'old_account_status'  => '',
+    'account_type' => '',
+  );
+  drupal_write_record('tw_user_history', $data);
+  /* TRIP2-141 Adding cookie for Training pages that need the UID*/
+  user_cookie_save(array('user_uid' => $account->uid));
+}
+
+function tw_user_history_user_logout($account) {
+  /* TRIP2-141: Deleting cookie when user logsout */
+  user_cookie_delete('user_uid');
+}
+
+function tw_user_history_user_update(&$edit, $account, $category) {
+
+    // Checking for an update to a user via user edit page. If not, exit out because this is likely being done outside the course of a normal action
+    if (preg_match('/\buser\b.*\bedit\b/', current_path()) == false) {
+      return;
+    }
+    // Checking for a new user registration.  If so, exit out of this function
+    if (strpos($_SERVER['REQUEST_URI'],'/user/register') !== false) {
+      return;
+    }
+    //Checking for new user registration password verification.  If so, exit out of this function
+    if (isset($_GET['gen'])) {
+      return;
+    }
+
+    //Check for role changes
+    // This is for account changes, NOT profile
+    if ($category == 'account' && isset($edit['roles'])) {
+      $old_roles = $edit['roles'];
+      // This fixes the authenticated role from appearing to be added every time when a user is saved
+      //unset($old_roles[2]);
+  
+      $old_roles_fix = array(); 
+      foreach($old_roles as $key => $or) {
+          $role = user_role_load($key);
+          $old_roles_fix[$role->rid] = $role->name;
+      }
+      $new_roles = $edit['original']->roles;
+      $roles_added = array_diff($old_roles_fix, $new_roles);
+      $roles_removed = array_diff($new_roles, $old_roles_fix);
+      if (!isset($currentrole)) { 
+        $currentrole = 0;
+      }
+
+      // Start admin tracking code
+    if(!isset($_SESSION['usertrack'])) {
+      tw_user_history_admin_user_info();
+    }
+    // End admin tracking code
+
+    //Check for email change
+    if ($edit['mail'] !== $edit['original']->mail) {
+      //Email change detected
+      tw_user_history_write_record($edit, 'email_change', 'Username ' . $edit['name'] . ' has changed their email address from' . $edit['original']->mail . ' to ' . $edit['mail'], implode(", ",$old_roles_fix));
+    }
+
+    if (!empty($roles_added)) {
+      //dpm($roles_added);
+        //dpm("Detected a added role");
+        tw_user_history_write_record($edit, 'role_addition', 'Username ' . $edit['name'] . ' had this/these roles added: ' . implode(", ",$roles_added), implode(", ",$old_roles_fix));
+        if ($currentrole == 1) {
+          tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER EDIT', 'USER MANAGEMENT > ADD ROLE', current_path(), '', '', '');
+        }
+    }
+    if (!empty($roles_removed)) {
+        //dpm("Detected a delete role");
+        tw_user_history_write_record($edit, 'role_removal', 'Username ' . $edit['name'] . ' had this/these roles removed: ' . implode(", ",$roles_removed), implode(", ",$old_roles_fix));
+        if ($currentrole == 1) {
+          tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER EDIT', 'USER MANAGEMENT > REMOVE ROLE', current_path(), '', '', '');
+        }
+    }
+
+    // Check for password change
+    if(isset($_SESSION['admin_track'])) {
+      if (isset($edit['pass'])) {
+        if ($edit['pass'] !== $edit['original']->pass) {
+          //dpm("Password change detected");
+          tw_user_history_write_record($edit, 'password_change', 'Username ' . $edit['name'] . ' changed ' . $edit['name'] . ' password', implode(", ",$old_roles_fix));
+          if ($role = 1) {
+            if(!isset($_SESSION['usertrack'])) {
+              tw_user_history_admin_user_info();
+            }
+            tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER EDIT', 'USER MANAGEMENT > CHANGE PASSWORD', current_path(), '', '', '');
+          }
+        }
+      }
+    }
+    
+    // Check for user state change
+    if ($edit['status'] !== $edit['original']->status) {
+      if ($edit['status'] > $edit['original']->status) {
+        //dpm("User has been actived");
+        tw_user_history_write_record($edit, 'user_activated', 'Username ' . $edit['name'] . ' was activated', implode(", ",$old_roles_fix));
+        if ($currentrole == 1) {
+          tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER ACTIVATE', 'USER MANAGEMENT > ACTIVATE USER', current_path(), '', '', '');
+        }
+      } else {
+        tw_user_history_write_record($edit, 'user_deactivated', 'Username ' . $edit['name'] . ' was de-activated', implode(", ",$old_roles_fix));
+        if ($currentrole == 1) {
+          tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER DEACTIVATE', 'USER MANAGEMENT > DEACTIVATE USER', current_path(), '', '', '');
+        }
+      }
+    }
+
+    // Check for user status change
+    if (isset($edit['field_user_status']['und'])) {
+      if (!empty($edit['field_user_status']['und'])) {
+        if ($edit['field_user_status']['und'][0]['tid'] !== $edit['original']->field_user_status['und'][0]['tid']) {
+          $old_status = taxonomy_term_load($edit['original']->field_user_status['und'][0]['tid']);
+          $new_status = taxonomy_term_load($edit['field_user_status']['und'][0]['tid']);
+          // Record action in admin log
+          if ($currentrole = 1) {
+            tw_user_history_admin_write_record(array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']), 'USER EDIT', 'USER MANAGEMENT > EDIT USER STATUS', current_path(), '', '', '');
+          }
+          // Determine which user status has been removed
+          switch ($old_status->name) {
+            case "Active":
+              tw_user_history_write_record($edit, 'removed_from_active', 'Username ' . $edit['name'] . ' was removed from Active user status', implode(", ",$old_roles_fix));
+              break;
+            case "Awaiting Approval":
+              tw_user_history_write_record($edit, 'removed_from_awaiting', 'Username ' . $edit['name'] . ' was removed from Awaiting Approval user status', implode(", ",$old_roles_fix));
+              break;
+            case "Awaiting Verification":
+              tw_user_history_write_record($edit, 'removed_from_verification', 'Username ' . $edit['name'] . ' was removed from Awaiting Verification user status', implode(", ",$old_roles_fix));
+              break;
+            case "Expired":
+              tw_user_history_write_record($edit, 'removed_from_expired', 'Username ' . $edit['name'] . ' was removed from Expired user status', implode(", ",$old_roles_fix));
+              break;
+            case "Inactive":
+              tw_user_history_write_record($edit, 'removed_from_inactive', 'Username ' . $edit['name'] . ' was removed from Inactive user status', implode(", ",$old_roles_fix));
+              break;
+            case "Removed":
+              tw_user_history_write_record($edit, 'removed_from_removed', 'Username ' . $edit['name'] . ' was removed from Removed user status', implode(", ",$old_roles_fix));
+              break;
+            case "Locked": 
+              tw_user_history_write_record($edit, 'removed_from_locked', 'Username ' . $edit['name'] . ' was removed from Locked user status', implode(", ",$old_roles_fix));
+              break;
+          }
+  
+          // Determine which status user has been added to
+          switch ($new_status->name) {
+              case "Active":
+                tw_user_history_write_record($edit, 'added_to_active', 'Username ' . $edit['name'] . ' was added to Active user status', implode(", ",$old_roles_fix));
+                break;
+              case "Awaiting Approval":
+                tw_user_history_write_record($edit, 'added_to_awaiting', 'Username ' . $edit['name'] . ' was added to Awaiting Approval user status', implode(", ",$old_roles_fix));
+                break;
+              case "Awaiting Verification":
+                tw_user_history_write_record($edit, 'added_to_verification', 'Username ' . $edit['name'] . ' was added to Awaiting Verification user status', implode(", ",$old_roles_fix));
+                break;
+              case "Expired":
+                tw_user_history_write_record($edit, 'added_to_expired', 'Username ' . $edit['name'] . ' was added to Expired user status', implode(", ",$old_roles_fix));
+                break;
+              case "Inactive":
+                tw_user_history_write_record($edit, 'added_to_inactive', 'Username ' . $edit['name'] . ' was added to Inactive user status', implode(", ",$old_roles_fix));
+                break;
+              case "Removed":
+                tw_user_history_write_record($edit, 'added_to_removed', 'Username ' . $edit['name'] . ' was added to Removed user status', implode(", ",$old_roles_fix));
+                break;
+              case "Locked": 
+                tw_user_history_write_record($edit, 'added_to_locked', 'Username ' . $edit['name'] . ' was added to Locked user status', implode(", ",$old_roles_fix));
+                break;
+            }
+        }
+      } 
+    }
+    
+    // Test if security questions were changed
+    // This if statement skips this check for non-admins since they shouldn't be able to change their security questions anyway
+    if (isset($_SESSION['usertrack'])) {
+      $oldanswers = tw_security_questions_user_question_get($account->uid);
+      if (!empty($oldanswers)) {
+        $oldanswer1 = decrypt($oldanswers[0]->answer);
+        $oldanswer2 = decrypt($oldanswers[1]->answer);
+        $newanswer1 = $edit['tw_security_questions']['challenge'][1]['answer'];
+        $newanswer2 = $edit['tw_security_questions']['challenge'][2]['answer'];
+        if ($oldanswer1 !== $newanswer1) {
+          tw_user_history_write_record($edit, 'security_answer_changed', 'Username ' . $edit['name'] . ' changed their security question answer for question 1', implode(", ",$old_roles_fix));
+        }
+        if ($oldanswer2 !== $newanswer2) {
+          tw_user_history_write_record($edit, 'security_answer_changed', 'Username ' . $edit['name'] . ' changed their security question answer for question 2', implode(", ",$old_roles_fix));
+        }
+      } else {
+        tw_user_history_write_record($edit, 'security_answer_added', 'Username ' . $edit['name'] . ' added new security answers', implode(", ",$old_roles_fix));
+      }
+    }
+    }
+}
+
+function tw_user_history_user_insert(&$edit, $account, $category) {
+  $data = array(
+    'uid' => $edit['uid'],
+    'type' => 'user_created',
+    'log' => 'Account for ' . $edit['name'] . ' was created',
+    'timestamp' => $edit['created'],
+    'name' => $edit['name'],
+    'account_state' => $edit['status'],
+    'current_account_status' => '',
+    'old_account_status'  =>'',
+    'account_type' => NULL,
+    'author' => 'SYSTEM',
+  );
+  drupal_write_record('tw_user_history', $data);
+}
+
+function tw_user_history_account_current_status($user) {
+  if (!empty($user['field_user_status']['und'])) {
+    $term = taxonomy_term_load($user['field_user_status']['und'][0]['tid']);
+    return $term->name;
+  } else {
+    return NULL;
+  }
+}
+
+function tw_user_history_account_old_status($user) {
+  if (!empty($user->field_user_status['und'])) {
+    $term = taxonomy_term_load($user->field_user_status['und'][0]['tid']);
+    return $term->name;
+  } else {
+    return NULL;
+  }
+}
+
+function tw_user_history_write_record($user, $type, $log, $roles) {
+  if ($roles == 'SKIP') {
+    $current_account_status = '';
+    $old_account_status = '';
+    $roles = NULL;
+  } else {
+    $current_account_status = tw_user_history_account_current_status($user);
+    $old_account_status = tw_user_history_account_old_status($user['original']);
+  }
+
+  // This sets current user UID, depending if it's the actual user or an admin
+  if (isset($_SESSION['usertrack'])) {
+    $authoruid = $_SESSION['usertrack']['name'];
+  } else {
+    $authoruid = $_SESSION['currentuid'];
+  }
+   
+  $data = array(
+    'uid' => $user['original']->uid,
+    'type' => $type,
+    'log' => $log,
+    'timestamp' => REQUEST_TIME,
+    'name' => $user['name'],
+    'account_state' => $user['status'],
+    'current_account_status' => $current_account_status,
+    'old_account_status'  => $old_account_status,
+    'account_type' => $roles,
+    'author' => $authoruid,
+  );
+  return drupal_write_record('tw_user_history', $data);
+}
+
+// Begin admin tracking
+
+// Track node edit
+function tw_user_history_node_prepare($node) {
+  if (isset($node->is_new)) {
+    if ($node->is_new !== TRUE) {
+      $url = current_path();
+      $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+      $action = "EDIT";
+      $page_label = $node->title;
+      tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+    }
+  } else {
+    $url = current_path();
+    $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+    $action = "EDIT";
+    $page_label = $node->title;
+    tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+  }
+}
+
+// Track node save
+function tw_user_history_node_presave($node) {
+  if (isset($node->log)) {
+    if ($node->log !== 'Created by FeedsNodeProcessor') {
+      $url = current_path();
+      $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+      if (strpos($url, 'edit') !== false) {
+        $action = "SAVE";
+      } else {
+        $action = "CREATE";
+      }
+      $page_label = $node->title;
+      tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+    }
+  }
+}
+
+// Track node delete
+function tw_user_history_node_delete($node) {
+  $url = current_path();
+  $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+  $action = "DELETE";
+  $page_label = $node->title;
+  tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+}
+
+function tw_user_history_entity_view($entity, $type, $view_mode, $langcode) {
+  if(!isset($_SESSION['usertrack'])) {
+    tw_user_history_admin_user_info();
+  }
+  if (isset($_SESSION['admin_track'])) {
+    if ($_SESSION['admin_track'] == 1) {
+      //dpm("Admin detected");
+      $url = current_path();
+      //dpm($type);
+      switch ($view_mode) {
+        case "full":
+        switch ($type) {
+          case "node": 
+            //dpm($entity);
+            $page_label = $entity->title;
+            $action = "OPEN";
+            $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+            if (isset($entity->field_pdf_doc)) {
+              if (isset($entity->field_pdf_doc['und'])) {
+                foreach($entity->field_pdf_doc['und'] as $d) {
+                  //dpm($d['filename']);
+                  tw_user_history_admin_write_record($currentuser, 'DOCUMENT OPEN', $page_label, $d['uri'], $d['fid'], '', '');
+                }
+              }
+            }
+            tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+            break;
+        }
+        break;
+      }
+    }
+  } else {
+    //dpm("No admin detected");
+  }
+}
+
+function tw_user_history_init() {
+  if (path_is_admin(current_path())) {
+    if(!isset($_SESSION['usertrack'])) {
+      tw_user_history_admin_user_info();
+    }
+    
+    if(isset($_SESSION['usertrack'])) {
+      if(!isset($_SESSION['usertrack']['uid'])) {
+        tw_user_history_admin_user_info();
+      }
+    }
+  }
+  if (isset($_SESSION['admin_track'])) {
+    if ($_SESSION['admin_track'] = 1) {
+      switch(current_path()) {
+        case (preg_match('/\buser\b.*\bedit\b/', current_path()) ? true : false) :
+          $action = 'VIEW USER';
+          $page_label = 'USER MANAGEMENT > VIEW USER';
+          $url = current_path();
+          $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+          tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+        break;
+        case "admin/people":
+          $action = 'OPEN';
+          $page_label = 'USER MANAGEMENT';
+          $url = current_path();
+          $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+          tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+          break;
+        case "admin/content":
+          $action = 'OPEN';
+          $page_label = 'CONTENT MANAGEMENT';
+          $url = current_path();
+          $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+          tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+          break;
+        case (preg_match('/\badmin\/dashboard\b.*\b/', current_path()) ? true : false) :
+          $action = 'OPEN';
+          $page_label = 'METRICS DASHBOARD';
+          $url = current_path();
+          $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+          tw_user_history_admin_write_record($currentuser, $action, $page_label, $url, '', '', '');
+        break;
+      }
+    }
+  }
+}
+
+// Record People page search
+function tw_user_history_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
+  if (strpos($_SERVER['REQUEST_URI'],'/admin/people') !== false) {
+    if ($form['#id'] == 'views-exposed-form-people-page-1') {
+      $form['status']['#options'][1] = 'Active';
+      $form['status']['#options'][0] = 'Blocked';
+      $form['#submit'][] = 'log_search';
+    }
+  }
+}
+
+/* TRIP-370: Add notes field to user edit */
+
+function tw_user_history_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_profile_form') {
+    if (isset($_SESSION['usertrack'])) {
+      if (strpos($_SESSION['usertrack']['roles'], 'Help Desk') !== false) {
+        // This is from TRIP2-393
+        $form['account']['status']['#disabled'] = TRUE;
+        $form['field_user_status']['#disabled'] = TRUE;
+        $form['field_evc_status']['#disabled'] = TRUE;
+        $form['field_account_states']['#disabled'] = TRUE;
+        drupal_add_js(array('tw_user_history' => array('helpdesk' => 'true')), array('type' => 'setting'));
+        if ($form['#user_category'] == 'privacy_information') {
+          drupal_add_js(array('tw_user_history' => array('privacy' => 'true')), array('type' => 'setting'));
+        }
+      }
+
+      if (strpos($_SESSION['usertrack']['roles'], 'Help Desk') || strpos($_SESSION['usertrack']['roles'], 'administrator') !== false) {
+        // Check to see if user is trying to reset their password. If so, hiding notes field from themself
+        $url = $_SERVER['HTTP_HOST'] . request_uri();
+        if (strpos($url,'reset=force') !== false) {
+          $form['field_notes']['#access'] = FALSE;
+        } else {
+          $form['#validate'][] = 'tw_user_history_notes_form_validate';
+        array_unshift($form['#submit'], 'tw_user_history_notes_form_submit');
+        }
+        // TRIP2-413: Adding logic check to ensure an activated user has proper role set
+        $form['#validate'][] = 'tw_user_history_activate_account_validate';
+        // Make notes field blank so that the field is always empty by default
+        if (isset($form['field_notes']['und'][0]['value'])) {
+          $form['field_notes']['und'][0]['value']['#default_value'] = '';
+          $theme_path = drupal_get_path('theme', 'seven');
+          drupal_add_js(drupal_get_path('module', 'twadmin') . '/twadmin.edituser.js', array('weight' => CSS_THEME));
+        }
+        $profilenames = array('personal_information', 'indicate_evc', 'employment_information', 'privacy_information');
+        if (in_array($form['#user_category'], $profilenames)) {
+          $theme_path = drupal_get_path('theme', 'seven');
+          drupal_add_js(drupal_get_path('module', 'twadmin') . '/twadmin.edituser.js', array('weight' => CSS_THEME));
+        } 
+      } else {
+        if (isset($form['field_notes']['und'])) {
+          $form['field_notes']['#access'] = FALSE;
+        }
+      }
+    }
+
+    // TRIP2-400 - Disabling certain fields for regular users in use profile
+    if (!isset($_SESSION['usertrack'])) {
+      if (!in_array('HSIN', $GLOBALS['user']->roles)) {
+        drupal_add_js(drupal_get_path('module', 'tw_user_history') . '/js/edituser.js', array('weight' => JS_THEME)); 
+        drupal_add_css(drupal_get_path('module', 'tw_user_history') . '/css/edituser.css', array('weight' => CSS_THEME));
+      }
+
+      if ($form['#user_category'] == 'account') {
+        // TRIP2-544: Checking if this is a password reset page, in which case we need to show the password field so that it can be changed. Else, we are hiding.
+        $paramscheck = drupal_get_query_parameters();
+        if (isset($paramscheck['reset'])) {
+        } else {
+          hide($form['account']['pass']);
+        }
+        
+        $form['account']['current_pass']['#weight'] = 1;
+        $form['account']['name']['#access'] = TRUE;
+        $form['account']['name']['#disabled'] = TRUE;
+        $form['field_user_group']['#access'] = FALSE;
+        $form['field_notes']['#access'] = FALSE;
+        $form['field_account_approved']['#access'] = FALSE;
+        $form['field_do_not_approve']['#access'] = FALSE;
+        $form['field_email_user']['#access'] = FALSE;
+        $form['picture']['#access'] = FALSE;
+        $form['account']['mail']['#title'] = 'Professional E-mail Address';
+        $oldtext = $form['account']['mail']['#description'];
+        $form['account']['mail']['#description'] = $oldtext . '<br><br>If your email address is updated, a verification email will be sent to the new address. Select the verify link within the email to continue to receive informative updates.';
+        field_group_hide_field_groups($form, array('group_accountstatus')); 
+      }
+    }
+  }
+  // TRIP2-511: Limiting taxonomy terms available for OSINT Administrator to use
+  $content_editor_types = array('carousel_item_node_form', 'library_document_node_form', 'osint_item_node_form', 'profiles_node_form', 'video_node_form', 'what_s_new_article_node_form');
+  // Check if current user is a OSINT Administrator
+  if (in_array('OSINT Administrator', $GLOBALS['user']->roles)) {
+    if (in_array($form_id, $content_editor_types)) {
+      //unset($form['field_secured_areas']['und']['#options'][4866]);
+      unset($form['field_secured_areas']['und']['#options'][4851]);
+      unset($form['field_secured_areas']['und']['#options'][4856]);
+      unset($form['field_secured_areas']['und']['#options'][4846]);
+      unset($form['field_secured_areas']['und']['#options'][4841]);
+      unset($form['field_secured_areas']['und']['#options'][4861]);
+    }
+  }
+
+  // T2OM-163: My TRIPwire subscriptions
+  if ($form_id == 'profile2_edit_my_tripwire_subscriptions_form') {
+    $form['profile_my_tripwire_subscriptions']['field_federal_region']['und']['#after_build'][] = 'tw_user_history_disable_element';
+    $form['#submit'][] = 'tw_user_history_mytripwire_submit';
+    $form['#action'] = '?destination=mytripwire';
+    $form['actions']['delete']['#value'] = 'Reset Subscriptions';
+    $breadcrumb = array();
+    $breadcrumb[] = l('Home', '');
+    $breadcrumb[] = l('My TRIPwire', 'mytripwire');
+    drupal_set_breadcrumb($breadcrumb);
+    drupal_set_title('My TRIPwire Subscriptions');
+  }
+}
+
+function tw_user_history_disable_element($element) {
+  $url = $_SERVER['REQUEST_URI'];
+  $url = explode('/', $url);
+  $employment = profile2_load_by_user($url[2], 'employment_information');
+  if (isset($employment->field_federal_region['und'])) {
+    $fed_id = $employment->field_federal_region['und'][0]['tid'];
+  }
+  foreach (element_children($element) as $key) {
+    if ($key == $fed_id) {
+      $element[$key]['#checked'] = TRUE;
+      $element[$key]['#attributes']['class'][] = 'disabled';
+      break;
+    }
+  }
+  return $element;
+}
+
+function tw_user_history_mytripwire_submit($form, &$form_state) {
+  unset($_SESSION['mtw']);
+}
+
+function tw_user_history_notes_form_validate($form, &$form_state) {
+  if (isset($form_state['clicked_button'])) {
+    if ($form_state['clicked_button']['#value'] == 'Save') {
+      switch($form['#user_category']) {
+        case 'account': 
+          // This function is for user edit Account page
+          if (strlen($form_state['values']['field_notes']['und'][0]['value']) < 1) {
+            form_set_error('field_notes', 'Notes field must be filled out for any changes.');
+          }
+          break;
+        case 'personal_information':
+           // This is for profile pages on user edit
+          if (strlen($form_state['values']['profile_personal_information']['field_notes']['und'][0]['value']) < 1) {
+            form_set_error('field_notes', 'Notes field must be filled out for any changes.');
+          }
+          break;
+        case 'indicate_evc': 
+          if (strlen($form_state['values']['profile_indicate_evc']['field_notes']['und'][0]['value']) < 1) {
+            form_set_error('field_notes', 'Notes field must be filled out for any changes.');
+          }
+          break;
+        case 'employment_information': 
+          if (strlen($form_state['values']['profile_employment_information']['field_notes']['und'][0]['value']) < 1) {
+            form_set_error('field_notes', 'Notes field must be filled out for any changes.');
+          }
+          break;
+        case 'privacy_information': 
+          if (strlen($form_state['values']['profile_privacy_information']['field_notes']['und'][0]['value']) < 1) {
+            form_set_error('field_notes', 'Notes field must be filled out for any changes.');
+          }
+          break;
+      }
+    }
+  }
+}
+
+function tw_user_history_activate_account_validate($form, &$form_state) {
+  if (isset($form_state['values']['field_account_approved'])) {
+    if ($form_state['values']['field_account_approved']['und'][0]['value'] !== NULL) {
+      // TRIP2-413: Need to check before activating an account that at least one role is assigned
+      $rolecount = 0;
+      $viprole = FALSE;
+      foreach($form_state['values']['roles'] as $k => $r) {
+        // Ignore authenticated role
+        if ($k !== 2) {
+          // Ignore Pre-Authenticated role
+          if ($k !== 31) {
+            // Ignore Awaiting Approval role
+            if ($k !== 26) {
+              if ($r !== 0) {
+                $rolecount++;
+                if ($r == 36) {
+                  $viprole = TRUE;
+                }
+              }
+            }
+          }
+        }
+      }
+      if ($rolecount < 1) {
+        form_set_error('values][roles', 'Not enough roles selected to activate a user. <br>Please add the roles first and save this user. Then activate this user.');
+      }
+      if ($viprole == TRUE) {
+        if ($rolecount < 2) {
+          form_set_error('values][roles', 'A VIP user needs to have at least 2 roles assigned.<br>Please add the roles first and save this user. Then activate this user.');
+        }
+      }
+    } 
+  }
+}
+
+function tw_user_history_fed_region_validate($form, &$form_state) {
+  if (isset($form_state['clicked_button'])) {
+    if ($form_state['clicked_button']['#value'] == 'Save') {
+      switch($form['#user_category']) {
+        case 'employment_information':
+          // First we check if the user made a change to their employment state
+          if (isset($form_state['profiles']['employment_information']->field_state_province_region)){
+            if ($form_state['profiles']['employment_information']->field_state_province_region['und'][0]['value'] !== $form_state['values']['profile_employment_information']['field_state_province_region']['und'][0]['value']) {
+              // Change detected, so let's assign Federal Region to match
+              $old_fed_region_tid = tw_registration_fed_region_helper($form_state['profiles']['employment_information']->field_state_province_region['und'][0]['value']);
+              $fed_region_tid = tw_registration_fed_region_helper($form_state['values']['profile_employment_information']['field_state_province_region']['und'][0]['value']);
+              $form_state['values']['profile_employment_information']['field_federal_region']['und'][0]['tid'] = $fed_region_tid;
+              // Update the Fed Region for My TRIPwire Subscriptions
+              $mtw = profile2_load_by_user($form['#user']->uid, 'my_tripwire_subscriptions');
+              if (!empty($mtw)) {
+               // First we check if this state is already assigned
+               $match = FALSE;
+               foreach ($mtw->field_federal_region['und'] as $key => $tid) {
+                if ($tid['tid'] == $fed_region_tid) {
+                  $match = TRUE;
+                }
+                  // Remove old Fed Region from My TRIPwire Subscriptions
+                  if ($tid['tid'] == $old_fed_region_tid) {
+                    unset($mtw->field_federal_region['und'][$key]);
+                  }
+                }
+                if ($match == FALSE) {
+                  // No matches found, so we need to add this value
+                  $mtw->field_federal_region['und'][]['tid'] = $fed_region_tid;
+                }
+                profile2_save($mtw); 
+              }
+            }
+          }
+          break;
+      }
+    }
+  }
+}
+
+function tw_user_history_notes_form_submit($form, &$form_state) {
+  $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+  $user = array();
+  $user['original'] = new \stdClass();
+  $user['original']->uid = $form['#user']->uid;
+  $user['name'] = $form['#user']->name;
+  $user['status'] = $form['#user']->status;
+  switch($form['#user_category']) {
+    case 'account':
+      tw_user_history_write_record($user, 'note', $form_state['values']['field_notes']['und'][0]['value'], 'SKIP');
+      if (!is_null($form_state['values']['field_do_not_approve']['und'][0]['value'])) {
+        $_SESSION['notesLog'] = $form_state['values']['field_notes']['und'][0]['value'];
+        switch ($form_state['values']['field_do_not_approve']['und'][0]['value']) {
+          case 'nonresponsive': 
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/nonresponsive');
+            break;
+          case 'evcdenied':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evcdenied');
+            break;
+          case 'evcnonresponsive':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evcnonresponsive');
+            break;
+          case 'vipcordenied':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/vipcordenied');
+            break;
+          case 'inactivity':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/inactivity');
+            break;
+          case 'passwordexpired':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/passwordexpired'); 
+            break;
+        }
+      }
+
+      if (!is_null($form_state['values']['field_evc_actions']['und'][0]['value'])) {
+        $_SESSION['notesLog'] = $form_state['values']['field_notes']['und'][0]['value'];
+        switch ($form_state['values']['field_evc_actions']['und'][0]['value']) {
+          case 'evc_updated':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_updated');
+            break;
+          case 'evc_verified':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_verified');
+            break;
+          case 'evcdenied':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evcdenied');
+            break;
+        }
+      }
+    
+      if (!is_null($form_state['values']['field_account_approved']['und'][0]['value'])) {
+        $_SESSION['notesLog'] = $form_state['values']['field_notes']['und'][0]['value'];
+        switch ($form_state['values']['field_account_approved']['und'][0]['value']) {
+          case 'approved':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/approved');
+            break;
+        }
+      }
+    
+      if (!is_null($form_state['values']['field_email_user']['und'][0]['value'])) {
+        $_SESSION['notesLog'] = $form_state['values']['field_notes']['und'][0]['value'];
+        switch ($form_state['values']['field_email_user']['und'][0]['value']) {
+          case 'resend': 
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/resend');
+            break;
+          case 'evcconfirmationreminder':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evcconfirmationreminder');
+            break;
+          case 'evc_nine_day':
+          drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_nine_day');
+            break;
+          case 'evc_fourteen_day':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_fourteen_day');
+            break;
+          case 'evc_annual_pending':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_annual_pending_manual');
+            break;
+          case 'evc_annual_nine_day':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_annual_nine_day');
+            break;
+          case 'evc_annual_fourteen_day':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_annual_fourteen_day');
+            break;
+          case 'evc_non_responsive':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/evc_non_responsive');
+            break;
+          case 'inactivity_warning':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/inactivity_warning');
+            break;
+          case 'password_reset_due':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/password_reset_due');
+            break;
+        }
+      }
+      if (!is_null($form_state['values']['field_hsin_actions']['und'][0]['value'])) {
+        $_SESSION['notesLog'] = $form_state['values']['field_notes']['und'][0]['value'];
+        switch ($form_state['values']['field_hsin_actions']['und'][0]['value']) {
+          case 'unbind':
+            drupal_goto('/admin/help-desk/helper/' . $form['#user']->uid . '/hsin_unbind');
+            break;
+        }
+      }
+      break;
+    case 'personal_information':
+      tw_user_history_write_record($user, 'note', $form_state['values']['profile_personal_information']['field_notes']['und'][0]['value'], 'SKIP');
+      // Make notes field blank so that the field is always empty by default
+      $form_state['values']['profile_personal_information']['field_notes']['und'][0]['value'] = '';
+      break;
+    case 'indicate_evc':
+      tw_user_history_write_record($user, 'note', $form_state['values']['profile_indicate_evc']['field_notes']['und'][0]['value'], 'SKIP');
+      // Make notes field blank so that the field is always empty by default
+      $form_state['values']['profile_indicate_evc']['field_notes']['und'][0]['value'] = '';
+      break;
+    case 'employment_information':
+      tw_user_history_write_record($user, 'note', $form_state['values']['profile_employment_information']['field_notes']['und'][0]['value'], 'SKIP');
+      // Make notes field blank so that the field is always empty by default
+      $form_state['values']['profile_employment_information']['field_notes']['und'][0]['value'] = '';
+      break;
+    case 'privacy_information':
+      tw_user_history_write_record($user, 'note', $form_state['values']['profile_privacy_information']['field_notes']['und'][0]['value'], 'SKIP');
+      // Make notes field blank so that the field is always empty by default
+      $form_state['values']['profile_privacy_information']['field_notes']['und'][0]['value'] = '';
+      break;
+  }
+
+  if(isset($form['#user_category'])){
+    if ($form['#user_category'] == 'indicate_evc') {
+      // Check for EVC Contact change
+      if ($form_state['profiles']['indicate_evc']->field_employment_verification_co['und'][0]['value'] !== $form_state['values']['profile_indicate_evc']['field_employment_verification_co']['und'][0]['value']) {
+        tw_user_history_write_record($user, 'EVC', 'EVC contact changed from ' . $form_state['profiles']['indicate_evc']->field_employment_verification_co['und'][0]['value'] . ' to ' . $form_state['values']['profile_indicate_evc']['field_employment_verification_co']['und'][0]['value'], 'SKIP');
+      }
+
+      // Check for EVC contact title change
+      if ($form_state['profiles']['indicate_evc']->field_verification_contact_title['und'][0]['value'] !== $form_state['values']['profile_indicate_evc']['field_verification_contact_title']['und'][0]['value']) {
+        tw_user_history_write_record($user, 'EVC', 'EVC contact title changed from ' . $form_state['profiles']['indicate_evc']->field_verification_contact_title['und'][0]['value'] . ' to ' . $form_state['values']['profile_indicate_evc']['field_verification_contact_title']['und'][0]['value'], 'SKIP');
+      }
+
+      // Check for EVC contact email change
+      if ($form_state['profiles']['indicate_evc']->field_verification_contact_email['und'][0]['value'] !== $form_state['values']['profile_indicate_evc']['field_verification_contact_email']['und'][0]['value']) {
+        tw_user_history_write_record($user, 'EVC', 'EVC contact email changed from ' . $form_state['profiles']['indicate_evc']->field_verification_contact_email['und'][0]['value'] . ' to ' . $form_state['values']['profile_indicate_evc']['field_verification_contact_email']['und'][0]['value'], 'SKIP');
+      }
+
+      // Check for EVC contact phone change
+      if ($form_state['profiles']['indicate_evc']->field_employment_verification_p['und'][0]['value'] !== $form_state['values']['profile_indicate_evc']['field_employment_verification_p']['und'][0]['value']) {
+        tw_user_history_write_record($user, 'EVC', 'EVC contact email changed from ' . $form_state['profiles']['indicate_evc']->field_employment_verification_p['und'][0]['value'] . ' to ' . $form_state['values']['profile_indicate_evc']['field_employment_verification_p']['und'][0]['value'], 'SKIP');
+      }
+    }
+  }
+}
+
+function log_search($form, &$form_state) {
+  $string = '';
+  foreach ($form_state['values'] as $k => $v) {
+    if ($k == 'created' ){
+      foreach ($v as $kd => $d) {
+        $string .= 'Date ' . $kd . ' ';
+        $string .= '[' . $d . '], ';
+      }
+    } elseif ($k == 'submit') {
+      break;
+    } else {
+      $string .= $k . ' ';
+      $string .= '[' . $v . '], ';
+    }
+  }
+  //dpm($string);
+  $url = current_path();
+  $currentuser = array('uid' => $_SESSION['usertrack']['uid'], 'name' => $_SESSION['usertrack']['name'], 'session' => $_SESSION['usertrack']['sid'], 'roles' => $_SESSION['usertrack']['roles']);
+  if (REQUEST_TIME != $_SESSION['usertrack']['time']) {
+    tw_user_history_admin_write_record($currentuser, 'SEARCH', 'USER MANAGEMENT > ACCOUNT MAINTENANCE', $url, '', '', $string);
+  }
+  $_SESSION['usertrack']['time'] = REQUEST_TIME;
+  
+}  
+
+// Helper function to record admin actions to db
+function tw_user_history_admin_write_record($currentuser, $action, $label, $url, $item_id, $error, $search){
+  //dpm($currentuser);
+  $data = array(
+    'uid' => $currentuser['uid'],
+    'session_id' => $currentuser['session'],
+    'action' => $action,
+    'timestamp' => REQUEST_TIME,
+    'name' => $currentuser['name'],
+    'page_label' => $label,
+    'url' => $url,
+    'item_id'  => $item_id,
+    'role' => $currentuser['roles'],
+    'error_message' => $error,
+    'search' => $search,
+  );
+  return drupal_write_record('tw_admin_history', $data);
+}
+
+// Helper function to establish session variables for admin users
+function tw_user_history_admin_user_info() {
+  global $user;
+  if (in_array('administrator', $user->roles) || in_array('IT O&M', $user->roles) || in_array('Help Desk', $user->roles) || in_array('OBP Admin', $user->roles) || in_array('OSINT Administrator', $user->roles)) {
+    $_SESSION['usertrack']['uid'] = $user->uid;
+    $_SESSION['usertrack']['name'] = $user->name;
+    $_SESSION['usertrack']['sid'] = $user->sid;
+    $_SESSION['usertrack']['roles'] = implode(", ", $user->roles);
+    $_SESSION['usertrack']['time'] = REQUEST_TIME;
+    $_SESSION['admin_track'] = 1;
+    $currentrole = 1;
+  } 
+  if ($user->uid !== 0) {
+    $currentrole = 0;
+    $_SESSION['currentuid'] = $user->name;
+  }
+}
+
+function tw_user_history_views_data() {
+  $data['tw_user_history']['table']['group'] = t('TripWIRE User History');
+
+  $data['tw_user_history']['table']['base'] = array(
+    'field' => 'uid',
+    'title' => t('TripWIRE User History'), 
+    'help' => t('TripWIRE User History content can be related to users.'), 
+    'weight' => -10,
+  );
+
+  $data['tw_user_history']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'uid', 
+      'field' => 'uid',
+    ),
+  );
+
+  $data['tw_user_history']['hid'] = array(
+    'title' => t('HID'), 
+    'help' => t('The primary identifier for a user change.'), 
+    'field' => array(
+      'handler' => 'views_handler_field_numeric', 
+      'click sortable' => TRUE,
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['tw_user_history']['uid'] = array(
+    'title' => t('UID'), 
+    'help' => t('The user ID.'), 
+    'field' => array(
+      'handler' => 'views_handler_field_numeric', 
+      'click sortable' => TRUE,
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['log'] = array(
+    'title' => t('Description of the change'), 
+    'help' => t('Description of the change.'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['timestamp'] = array(
+    'title' => t('Timestamp field'), 
+    'help' => t('A Unix timestamp indicating when this version was created.'), 
+    'field' => array(
+      'handler' => 'views_handler_field_date', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  $data['tw_user_history']['name'] = array(
+    'title' => t('Username'), 
+    'help' => t('Full username'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['type'] = array(
+    'title' => t('Type'), 
+    'help' => t('The type of change that occured.'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['current_account_status'] = array(
+    'title' => t('Account status'), 
+    'help' => t('Current account status'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['old_account_status'] = array(
+    'title' => t('Old account status'), 
+    'help' => t('Old account status'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['account_state'] = array(
+    'title' => t('User status'), 
+    'help' => t('Is the user active or disabled'), 
+    'field' => array(
+      'handler' => 'views_handler_field_numeric', 
+      'click sortable' => TRUE,
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['tw_user_history']['account_type'] = array(
+    'title' => t('Account Type/Role'), 
+    'help' => t('User role.'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['tw_user_history']['author'] = array(
+    'title' => t('Change Author'), 
+    'help' => t('User who made the change'), 
+    'field' => array(
+      'handler' => 'views_handler_field', 
+      'click sortable' => TRUE,
+    ), 
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ), 
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ), 
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // Admin history
+  $data['tw_admin_history']['table']['group'] = t('TripWIRE Admin History');
+  
+  $data['tw_admin_history']['table']['base'] = array(
+    'field' => 'uid',
+    'title' => t('TripWIRE Admin History'), 
+    'help' => t('TripWIRE Admin History content can be related to actions admin users have taken.'), 
+    'weight' => -10,
+  );
+  
+    $data['tw_admin_history']['table']['join'] = array(
+      'node' => array(
+        'left_field' => 'uid', 
+        'field' => 'uid',
+      ),
+    );
+  
+    $data['tw_admin_history']['eid'] = array(
+      'title' => t('EID'), 
+      'help' => t('The primary identifier for a admin event.'), 
+      'field' => array(
+        'handler' => 'views_handler_field_numeric', 
+        'click sortable' => TRUE,
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ),
+    );
+  
+    $data['tw_admin_history']['uid'] = array(
+      'title' => t('UID'), 
+      'help' => t('The user ID.'), 
+      'field' => array(
+        'handler' => 'views_handler_field_numeric', 
+        'click sortable' => TRUE,
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ),
+    );
+  
+    $data['tw_admin_history']['action'] = array(
+      'title' => t('Action'), 
+      'help' => t('Type of action taken.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_admin_history']['timestamp'] = array(
+      'title' => t('Timestamp field'), 
+      'help' => t('A Unix timestamp indicating when this action took place.'), 
+      'field' => array(
+        'handler' => 'views_handler_field_date', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort_date',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_date',
+      ),
+    );
+  
+    $data['tw_admin_history']['name'] = array(
+      'title' => t('Username'), 
+      'help' => t('Full username'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_admin_history']['session_id'] = array(
+      'title' => t('Session ID'), 
+      'help' => t('Unique session ID for the user.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_admin_history']['page_label'] = array(
+      'title' => t('Page Label'), 
+      'help' => t('Page title name'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_admin_history']['url'] = array(
+      'title' => t('URL'), 
+      'help' => t('Relative URL path'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_admin_history']['role'] = array(
+      'title' => t('Account Role'), 
+      'help' => t('User role.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+
+    $data['tw_admin_history']['item_id'] = array(
+      'title' => t('Item ID'),  
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+
+    $data['tw_admin_history']['error_message'] = array(
+      'title' => t('Error Message'), 
+      'help' => t('Error message displayed on page.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+
+    $data['tw_admin_history']['search'] = array(
+      'title' => t('Search'), 
+      'help' => t('Search string used.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+
+    // User Status history
+  $data['tw_status_history']['table']['group'] = t('TripWIRE User Status History');
+  
+  $data['tw_status_history']['table']['base'] = array(
+    'field' => 'uid',
+    'title' => t('TripWIRE User Status History'), 
+    'help' => t('TripWIRE User Status tracking.'), 
+    'weight' => -10,
+  );
+  
+    $data['tw_status_history']['table']['join'] = array(
+      'node' => array(
+        'left_field' => 'uid', 
+        'field' => 'uid',
+      ),
+    );
+  
+    $data['tw_status_history']['sid'] = array(
+      'title' => t('EID'), 
+      'help' => t('The primary identifier for a admin event.'), 
+      'field' => array(
+        'handler' => 'views_handler_field_numeric', 
+        'click sortable' => TRUE,
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ),
+    );
+  
+    $data['tw_status_history']['name'] = array(
+      'title' => t('Username'), 
+      'help' => t('Unique username.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_status_history']['timestamp'] = array(
+      'title' => t('Timestamp field'), 
+      'help' => t('A Unix timestamp indicating when this action took place.'), 
+      'field' => array(
+        'handler' => 'views_handler_field_date', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort_date',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_date',
+      ),
+    );
+  
+    $data['tw_status_history']['status'] = array(
+      'title' => t('TW User Status'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_status_history']['state'] = array(
+      'title' => t('TW User State'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_status_history']['roles'] = array(
+      'title' => t('User Roles'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_status_history']['fed_region'] = array(
+      'title' => t('Federal Region'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+  
+    $data['tw_status_history']['drupal_status'] = array(
+      'title' => t('Drupal user status'), 
+      'help' => t('Boolean enabled or not.'), 
+      'field' => array(
+        'handler' => 'views_handler_field', 
+        'click sortable' => TRUE,
+      ), 
+      'sort' => array(
+        'handler' => 'views_handler_sort',
+      ), 
+      'filter' => array(
+        'handler' => 'views_handler_filter_string',
+      ), 
+      'argument' => array(
+        'handler' => 'views_handler_argument_string',
+      ),
+    );
+
+  return $data;
+}
+
+function tw_user_history_views_pre_render(&$view) {
+  if ($view->name == 'extremist_threat_reports_dashboard' || $view->name == 'non_obp_reports_dashboard') {
+    $storage = array();
+    foreach ($view->result as $key => $r) {
+      if(in_array($r->file_managed_field_data_field_pdf_doc_filename, $storage)) {
+        unset($view->result[$key]);
+      } else {
+        $storage[] = $r->file_managed_field_data_field_pdf_doc_filename;
+      }
+      
+    }
+  }
+}
+
+function tw_user_history_cron() {
+	if (date('j', time()) === '1') {
+    if (date('H', time()) == 11) {
+      module_load_include('status.inc', 'tw_user_history');
+      watchdog('tw_user_history', 'Running user status tracking script', array(), WATCHDOG_INFO, NULL);
+      tw_user_history_status_track();
+    }
+	}
+}
+
+
+/**
+ * Implements hook_update_7007().
+ * Add status traking db table.
+ */
+function tw_user_history_update_7007() {
+  $schema = tw_user_history_schema();
+  if(!db_table_exists('tw_status_history'))
+    db_create_table('tw_status_history', $schema['tw_status_history']);
+}
+
+/**
+ * Implements hook_update_7008().
+ * Add status traking db table.
+ */
+function tw_user_history_update_7008() {
+  $author = array (
+      'type' => 'varchar',
+      'length' => 60,
+      'not null' => TRUE,
+      'default' => '',
+      'description' => 'User name who made the change.',
+  );
+  db_add_field('tw_user_history', 'author', $author);
+}
+
+/**
+ * Implements hook_update_7009().
+ * Removing any saved fields in field_data_field_email_user table
+ */
+function tw_user_history_update_7009() {
+  $result = db_truncate('field_data_field_email_user')->execute();
+}

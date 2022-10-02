@@ -1,0 +1,191 @@
+body.page-mytripwire .content-sidebar-wrap {
+    width: 30% !important;
+}
+
+body.page-mytripwire #breadcrumbs { display: none; }
+
+body.page-mytripwire h1.page-title {
+  color: navy;
+  margin-bottom: 0;
+  margin-top: 25px;
+  font-size: 24px;
+}
+
+body.page-mytripwire .mtw-header .messages {
+  width: 75%;
+}
+
+body.page-mytripwire #container {
+  position: relative;
+}
+
+body.page-mytripwire #post-content {
+  padding: 0 0 0 17px;
+}
+
+body.page-mytripwire .region-sidebar-second {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: stretch;
+}
+
+body.page-mytripwire #sidebar-second {
+    width: 69% !important;
+}
+
+body.page-mytripwire aside .block {
+    margin: 0;
+}
+
+.view-my-tripwire-page {
+    border-top: 3px solid #3784FC;
+    
+    overflow-y: scroll;
+}
+
+.view-my-tripwire-page > h2 {
+    font-family: 'robotobold';
+    font-weight: normal;
+    margin: 0;
+    font-size: 1.6em;
+    line-height: 1em;
+    margin-bottom: 30px;
+  }
+
+  .view-my-tripwire-page .view-header {
+    margin: 20px 0;
+    color: #333;
+    font-family: 'robotobold';
+  }
+  
+  .view-my-tripwire-page .views-row {
+    padding-bottom: 20px;
+  }
+  
+  .view-my-tripwire-page .views-row .views-field-nothing {
+    position: relative;
+  }
+  .region.region-content .view-my-tripwire-page .wng-title {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+  
+  .region.region-content .view-my-tripwire-page .wng-title a {
+    font-size: 20px;
+    display: block;
+  }
+  
+  .view-my-tripwire-page .wng-left {
+    display: inline-block;
+    vertical-align: top;
+    width: 55%;
+  }
+  
+  .view-my-tripwire-page .wng-text {
+    color: #666;
+    font-size: 15px;
+  }
+  
+  .view-my-tripwire-page .wng-readmore {
+    margin-top: 20px;
+  }
+  
+  .region.region-content .view-my-tripwire-page .wng-readmore a {
+    color: #666;
+    font-family: 'robotobold';
+  }
+  
+  .view-my-tripwire-page .wng-readmore .fa-play {
+    font-size: 10px;
+    color: teal;
+    vertical-align: middle;
+  }
+  
+  .view-my-tripwire-page .wng-right {
+    display: inline-block;
+    vertical-align: top;
+    width: 35%;
+    margin-left: 3%;
+  }
+
+  body.page-mytripwire #sidebar-second h2 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-family: 'robotobold';
+    font-size: 16px;
+  }
+
+  body.page-mytripwire #container #sidebar-second h2 span, #container .view-my-tripwire-page .view-header span {
+    color: #436A8F;
+    font-family: 'robotobold';
+  }
+
+  body.page-mytripwire #sidebar-second .block-views {
+    width: 40%;
+    border-top: 3px solid #3784FC;
+    padding-top: 10px;
+    box-shadow: 0px 2px 1px #ccc;
+    padding: 10px 10px;
+    min-height: 480px;
+    position: relative;
+    margin-bottom: 45px;
+  }
+
+  #container .mytripwire-block .views-field-title a {
+      font-size: 14px;
+      font-family: 'robotoregular';
+      font-weight: bold;
+      margin: 10px 0;
+      display: block;
+  }
+  
+  #container .mytripwire-block .views-field-title span {
+    color: #436A8F;
+    font-size: 14px;
+    font-family: 'robotobold';
+  }
+
+  .page-mytripwire #container .item-list .pager li {
+    font-size: 14px;
+    color: #000;
+    background: transparent;
+    padding: 0;
+  }
+
+  .region.region-sidebar-second .mytripwire-block .item-list .pager a {
+    color: #003366;
+  }
+
+  #container .mytripwire-block .view-header p {
+    color: #333;
+    font-size: 14px;
+    font-family: 'robotobold';
+  }
+
+  .mytripwire-block .pager {
+    position: absolute;
+    left: 35%;
+    bottom: 0;
+  }
+
+  #block-tw-content-mytw-modify-subscriptions {
+    text-align: right;
+    position: absolute;
+    right: 30px;
+    top: 30px;
+  }
+
+  #container #block-tw-content-mytw-modify-subscriptions p {
+    margin-bottom: 0;
+  }
+
+  .region.region-sidebar-second #block-tw-content-mytw-modify-subscriptions .content a {
+    color: #000;
+    background: #ccc;
+    border: 1px solid #999;
+    padding: 5px 15px;
+    font-family: 'robotobold';
+    font-size: 16px;
+  }

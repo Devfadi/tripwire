@@ -1,0 +1,66 @@
+.blackbg { 
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    top: 0;
+    padding-bottom: 10rem;
+ }
+ .transbg{
+    background-color: rgba(0, 0, 0, 0.0) !important;
+ }
+ 
+ .popup-box{
+   width: 450px;
+   height: 380px;
+   position: absolute;
+   top: 30%;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: auto;
+   z-index: 20;
+   background-color: white;
+   padding: 10px;
+   font-size: 20px;
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: center;
+   font-family: "Lucida Grande", Verdana, sans-serif;
+   line-height: 1.2em;
+   padding-left: 2rem;
+   padding-right: 2rem;
+   padding-top: 3rem;
+   padding-bottom: 2rem;
+ }
+ 
+ .btns-wrapper{
+ 
+    position: absolute;
+    bottom: 15px;
+    text-align: center;
+    font-size: 15px;
+    display: block;
+    margin: auto;
+ 
+ }
+ 
+ .save-btn, 
+ .cancel-btn{
+   padding: 10px;
+   width: 70px;
+   cursor: pointer;
+   border-radius: 5px;
+   display: inline-block;
+ }
+ 
+ .save-btn{
+   background-color: #6bc711;
+   margin-right: 10px;
+ }
+ 
+ .cancel-btn{
+   background-color: red;
+ }

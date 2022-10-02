@@ -1,0 +1,10 @@
+name = Documents available to international users
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = views
+dependencies[] = views_data_export
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = documents_available_to_international_users
+features_exclude[dependencies][ctools] = ctools

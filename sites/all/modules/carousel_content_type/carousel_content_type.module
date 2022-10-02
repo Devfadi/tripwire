@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Carousel Content Type feature.
+ */
+
+include_once 'carousel_content_type.features.inc';

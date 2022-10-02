@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Full Width Carousel feature.
+ */
+
+include_once 'full_width_carousel.features.inc';

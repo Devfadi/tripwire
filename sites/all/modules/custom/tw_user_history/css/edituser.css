@@ -1,0 +1,11 @@
+.form-submit.disabled, .form-submit.disabled:hover{
+    cursor: auto;
+    background: grey;
+    color: white;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+.field-name-field-notes {
+    display: none;
+}

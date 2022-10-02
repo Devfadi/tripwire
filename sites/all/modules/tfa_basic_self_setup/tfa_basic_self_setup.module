@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * @file
+ * Contains code for TFA self-setup.
+ */
+
+/**
+ * Function to determine whether TFA setup is required/allowed for user.
+ */
+function _tfa_basic_self_setup_required(&$account) {
+
+  $status = FALSE;
+
+  // Check that user can self-service and has a role that requires TFA.
+  if (user_access('setup own tfa', $account) && tfa_basic_tfa_required($account)) {
+    $status = TRUE;
+  }
+
+  // Now check their TFA setup status.
+  if ($status) {
+    $data = tfa_basic_get_tfa_data($account);
+    $status = (empty($data) ? TRUE : !$data['status']);
+  }
+
+  return $status;
+}
+
+/**
+ * Function to determine if current request is a password reset.
+ */
+function _tfa_basic_self_setup_is_pass_reset() {
+
+  $destination = drupal_get_destination();
+
+  return (stripos($destination['destination'], 'user/reset') === 0);
+}
+
+/**
+ * Shallow copy of user_login_finalize().
+ */
+function _tfa_basic_self_setup_login_finalize(&$account) {
+
+  global $user;
+
+  // User has used a one-time login link.
+  if (user_is_logged_in()) {
+    // Shallow copy of user_login_finalize(), without the hook_user_login
+    // invocation (which would result in an infinite loop when called here).
+    // @see tfa_user_login
+    watchdog('user', 'Session opened for %name.', array('%name' => $user->name));
+
+    $user->login = REQUEST_TIME;
+    db_update('users')
+      ->fields(array('login' => $user->login))
+      ->condition('uid', $user->uid)
+      ->execute();
+
+    drupal_session_regenerate();
+
+    // Shallow copy of user_pass_reset (action="login").
+    // Set the new user.
+    $user = $account;
+
+    if (_tfa_basic_self_setup_is_pass_reset()) {
+      watchdog('user', 'User %name used one-time login link at time %timestamp.', array('%name' => $account->name, '%timestamp' => REQUEST_TIME));
+      drupal_set_message(t('You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password.'));
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_help().
+ */
+function tfa_basic_self_setup_help($path, $arg) {
+
+  $output = '';
+  switch ($path) {
+    case 'admin/help#tfa_basic_self_setup':
+      $filepath = dirname(__FILE__) . '/README.md';
+      if (file_exists($filepath)) {
+        $readme = file_get_contents($filepath);
+      }
+      else {
+        $filepath = dirname(__FILE__) . '/README.txt';
+        if (file_exists($filepath)) {
+          $readme = file_get_contents($filepath);
+        }
+      }
+
+      if (!isset($readme)) {
+        return NULL;
+      }
+
+      if (module_exists('markdown')) {
+        $filters = module_invoke('markdown', 'filter_info');
+        $info = $filters['filter_markdown'];
+
+        if (function_exists($info['process callback'])) {
+          $output = $info['process callback']($readme, NULL);
+        }
+        else {
+          $output = '<pre>' . $readme . '</pre>';
+        }
+      }
+      else {
+        $output = '<pre>' . $readme . '</pre>';
+      }
+      break;
+  }
+
+  return $output;
+}
+
+/**
+ * Implements hook_tfa_ready_require().
+ */
+function tfa_basic_self_setup_tfa_ready_require($account) {
+
+  global $user;
+
+  if (!variable_get('tfa_enabled', 0)) {
+    return;
+  }
+
+  // Note: this hook doesn't really work as advertised. Returning FALSE *should*
+  // be enough to not halt the login...that doesn't work, though. So we have to
+  // do some forceful redirect stuff here instead.
+  if (_tfa_basic_self_setup_required($account)) {
+
+    // Clear messages from tfa_basic_tfa_ready_require.
+    drupal_get_messages();
+
+    if (_tfa_basic_self_setup_login_finalize($account)) {
+      $query = array(
+        'destination' => 'user/' . $user->uid . '/security/tfa',
+      );
+
+      // Let the user's password be changed without the current password check.
+      if (_tfa_basic_self_setup_is_pass_reset()) {
+        $token = drupal_random_key();
+        $_SESSION['pass_reset_' . $user->uid] = $token;
+        $query['pass-reset-token'] = $token;
+      }
+
+      drupal_goto('user/' . $user->uid . '/edit', array(
+        'query' => $query,
+      ));
+    }
+  }
+  elseif (!tfa_basic_tfa_required($account)) {
+
+    // TFA setup is not required per this user's roles. If user is logged in
+    // (i.e. used a one-time login link, send them right on to their profile
+    // form instead of TFA setup...this works around a bug with role handling
+    // in tfa_basic contrib.
+    if (_tfa_basic_self_setup_login_finalize($account)) {
+      $query = array();
+
+      // Let the user's password be changed without the current password check.
+      if (_tfa_basic_self_setup_is_pass_reset()) {
+        $token = drupal_random_key();
+        $_SESSION['pass_reset_' . $user->uid] = $token;
+        $query['pass-reset-token'] = $token;
+      }
+
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function tfa_basic_self_setup_form_alter(&$form, &$form_state, $form_id) {
+
+  if (!variable_get('tfa_enabled', 0)) {
+    return;
+  }
+
+  switch ($form_id) {
+    case 'user_login':
+    case 'user_login_block':
+      $form['#submit'][] = 'tfa_basic_self_setup_login_submit';
+      break;
+  }
+}
+
+/**
+ * Custom login form submit handler to override behavior of tfa_login_submit().
+ */
+function tfa_basic_self_setup_login_submit($form, &$form_state) {
+
+  // Shallow copies of user_login_submit and user_login_finalize, with no
+  // invocation of hook_user_login which would trigger
+  // tfa_basic_self_setup_tfa_ready_require.
+  // @see tfa_user_login
+  global $user;
+
+  $user = user_load($form_state['uid']);
+
+  // Send user to TFA setup. Only perform these user_login_finalize tasks if
+  // the user still needs to complete TFA setup. If user has already completed
+  // this control flow falls through to invoked tfa_user_login which does the
+  // actual TFA enforcement.
+  if (_tfa_basic_self_setup_required($user)) {
+
+    watchdog('user', 'Session opened for %name.', array('%name' => $user->name));
+
+    $user->login = REQUEST_TIME;
+    db_update('users')
+      ->fields(array('login' => $user->login))
+      ->condition('uid', $user->uid)
+      ->execute();
+
+    drupal_session_regenerate();
+
+    drupal_set_message(t('You are required to set up two-factor authentication.'));
+    drupal_goto('user/' . $user->uid . '/security/tfa');
+  }
+
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function tfa_basic_self_setup_form_user_profile_form_alter(&$form, &$form_state) {
+
+  if (!variable_get('tfa_enabled', 0)) {
+    return;
+  }
+
+  $form['#submit'][] = 'tfa_basic_self_setup_form_user_profile_form_submit';
+}
+
+/**
+ * Custom profile form submit handler to force TFA setup.
+ */
+function tfa_basic_self_setup_form_user_profile_form_submit($form, &$form_state) {
+
+  $account = $form['#user'];
+
+  if (_tfa_basic_self_setup_required($account)) {
+    drupal_set_message(t('You are required to set up two-factor authentication.'));
+
+    // OpenAtrium-centric workaround.
+    $destination = drupal_get_destination();
+    $destination = $destination['destination'];
+    $target = 'user/' . $account->uid . '/security/tfa';
+    if ($destination !== $target) {
+      drupal_goto($target);
+    }
+  }
+}

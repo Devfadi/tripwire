@@ -1,0 +1,5 @@
+name = TripWire Security Questions
+description = Add support for password resets via the use of security questions.
+core = 7.x
+
+configure = admin/config/people/security-questions

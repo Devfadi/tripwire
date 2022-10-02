@@ -1,0 +1,62 @@
+/* Tag Styles */
+.highlight {
+    color: black;
+    background: yellow;
+}
+.black-bg { background: #000; }
+.white-bg { background: #FFF; } 
+.red-bg   { background: #F00; }
+.transparent-black {
+    background: rgb(0,0,0);
+    background: rgba(0,0,0,.5);
+}
+
+/* Borders */
+.border-white { border: white solid 2px; }
+.border-black { border: black solid 2px; }
+.border-rounded, 
+.border-rounded-default {
+    -moz-border-radius: 12px;
+    -webkit-border-radius: 12px;
+    -khtml-border-radius: 12px;
+    border-radius: 12px;
+}
+.border-rounded-small {
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    border-radius: 8px;
+}
+
+/* Text Styles */
+.note-text {
+    font-weight: bold;
+    font-style: italic;
+}
+.question-text {
+    font-size: 18px;
+    font-weight: bold;
+}
+.option-text {
+    font-size: 18px;
+    font-weight: normal;
+}
+.warn-text {
+    color: red;
+    background: inherit;
+}
+.info-text {
+    /*color: blue;*/
+    font-style: italic;
+    background: inherit;
+}
+.fouo-text {
+    font-style: normal;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.dialog-text {
+    font-style: italic;
+}
+
+/* Page Elements */

@@ -1,0 +1,108 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html class="ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]>    <html class="ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]>    <html class="ie8" lang="en"> <![endif]-->
+<!--[if IE 9 ]>    <html class="ie9" lang="en"> <![endif]-->
+<!--[if gt IE 9]>  <html class="ie10" lang="en"> <![endif]-->
+<!--[if !IE]> -->
+<html class="" lang="en">
+<!-- <![endif]-->
+<head>
+	<meta charset="UTF-8" />
+	<title>TSWG IED Prototype</title>
+	
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script data-main="files/scripts/main" src="/IED/require_security.js"></script>
+    <script type="text/javascript">
+
+    </script>
+    <script type="text/javascript">
+    WebFontConfig = {
+        google: { families: [ 'PT+Sans::latin' ] }
+    };
+    (function() {
+        var wf = document.createElement('script');
+        wf.src = ('https:' == document.location.protocol ? 'https' : 'http') + '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+        wf.type = 'text/javascript';
+        wf.async = 'true';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(wf, s);
+    })(); </script>
+	
+	<!-- build:css(.tmp) files/styles/main.css -->
+	<link rel="stylesheet" type="text/css" href="files/styles/reset.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/theme/jquery-ui.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="files/styles/skin/blue.monday/jplayer.blue.monday.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/base.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/globals.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/theme.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/layout.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/gui.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/debug.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/godmenu.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/preload.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/clock.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/screens.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/status-view.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/radio-view.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/map-view.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/aar.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/components/pause.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/advEngine/objects/advDP.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/advEngine/objects/advAudio.css" />
+	<link rel="stylesheet" type="text/css" href="files/styles/advEngine/objects/advVideo.css" />
+	<!-- endbuild -->
+</head>
+<body>
+    <noscript>
+        <table style="width:100%;height:100%;">
+            <tr style="valign:middle;"><td><div style="text-align:center;">ERROR:
+            <br/><br/>Javascript not activated<br/><br/></div></td></tr>
+        </table>
+    </noscript>
+    <div id="viewport">
+        <div id="preload-display" class="layer preload-display">
+            <div class="preload-title">IED Prototype</div>
+            <div class="preload-logo"><img src="files/assets/images/animated/load-screen.gif" /></div>
+            <div class="preload-progress-text">Loading</div>
+            <div class="preload-progress-bar" style="width: 100%;"></div>
+            <!--<div class="preload-progress-note">Note: Depending on your Internet connection, this scenario could take a few minutes to load.</div>-->
+            <div class="preload-progress-note">Note: If this screen is taking an excessive amount of time to load, please check your Adobe Flash Player Trusted Sites settings. For additional information, see the <a href="Installation Instructions.pdf" target="_blank">Installation Instructions</a> document.</div>
+        </div>
+        <div id="debug" class="layer" style="display:none">
+            <div id="debug_msg"></div>
+            <div id="debug_footer">
+                <input id="debug_input" type="text" value="">
+            </div>
+        </div>
+        <div id="god-view" class="layer" style="display:none;"></div>
+        <div id="menu-bg" class="screen">
+            <img src="files/assets/images/fills/gradient.png" class="bg"/>
+            <img src="files/assets/images/gui/title.png" class="title" />
+        </div>
+    </div>
+    <div id="aar" style="z-index:9999;position:absolute;"></div>
+
+<!--
+    <div id="spinner" style="display:none;">
+        <div id="spinner-content">
+            <p>Loading...</p>
+            <img src="files/assets/images/animated/waiting.gif" />
+        </div>
+    </div>
+-->
+    <div id="video-spinner" style="position:absolute;display:none;">
+        <img src="files/assets/images/animated/ajax-loader.gif" />
+    </div>
+    <!-- build:js files/scripts/krpano.all.js -->
+    <script src="files/krpano/swfkrpano.js"></script>
+    <script src="files/krpano/krpanoiphone.license.js"></script>
+    <script src="files/krpano/krpanoiphone.js"></script>
+    <!-- endbuild -->
+	<script data-main="files/scripts/main" src="files/scripts/vendor/require.js"></script>
+</body>
+</html>

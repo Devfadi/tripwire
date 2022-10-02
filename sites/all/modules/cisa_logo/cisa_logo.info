@@ -1,0 +1,8 @@
+name = CISA Logo
+description = CISA Logo for the page header
+core = 7.x
+package = Features
+dependencies[] = fe_block
+features[fe_block_boxes][] = cisa
+features[fe_block_settings][] = block-cisa
+features[features_api][] = api:2

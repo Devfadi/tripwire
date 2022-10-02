@@ -1,0 +1,145 @@
+#spinner {
+    background: transparent url('../assets/images/fills/blank.gif') top left repeat; 
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+#spinner-content {
+  background: none repeat scroll 0 0 white;
+  border: 2px solid #000000;
+  color: black;
+  font-weight: bold;
+  height: 45px;
+  padding: 10px;
+  text-align: center;
+  width: 128px;
+}
+#video-spinner {
+    z-index: 99999;
+}
+/*
+.menu-buttons button {
+    overflow: visible;
+    height: 44px;
+    cursor: pointer;
+    background: #FFF;
+    border: 3px solid #00739d;
+    margin: 0;
+	border-radius: 5px;
+    color: #27577d;
+    cursor: pointer;
+    font-size: 19px;
+    padding: 10px;
+}
+*/
+.menu-buttons button {
+    overflow: visible;
+    height: 41px;
+    cursor: pointer;
+    border: 0px none;
+    color: #27577d;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+}
+.menu-buttons button .btn-content {
+    background: transparent url('../assets/images/gui/Button_Middle_Smaller.png');
+    border: 0px none;
+    color: #27577d;
+    cursor: pointer;
+    font-size: 19px;
+    height: 31px;
+    left: 35px;
+    margin: 0 70px 0 0;
+    overflow: visible;
+    padding: 10px 0 0 0;
+    position: relative;
+    top: 0px;
+}
+.menu-buttons button::-moz-focus-inner,
+.menu-buttons button:focus {
+    border: 0;
+}
+.menu-buttons button .btn-content:before,
+.menu-buttons button .btn-content:after {
+    content: "";
+    background: transparent url('../assets/images/gui/Button_Left_Smaller.png');
+    width: 35px;
+    height: 41px;
+    position: absolute;
+    left: -35px;
+    top: 0px;
+}
+.menu-buttons button .btn-content:after {
+    background: transparent url('../assets/images/gui/Button_Right_Smaller.png');
+    width: 35px;
+    left: auto;
+    right: -35px;
+}
+.menu-buttons button:hover {
+    top: 1px;
+    left: 36px;
+}
+
+.menu-selections button {
+    overflow: visible;
+    height: 82px;
+    cursor: pointer;
+    border: 0px none;
+    color: #27577d;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+}
+.menu-selections button::-moz-focus-inner,
+.menu-selections button:focus {
+    border: 0;
+}
+.menu-selections button .btn-content {
+    background: transparent url('../assets/images/gui/Button_Middle_Small.png');
+    position: relative;
+    top: 0px;
+    left: 70px;
+    height: 68px;
+    margin: 0 140px 0 0;
+    padding: 14px 0 0 0;
+    overflow: visible;
+}
+.menu-selections button .btn-content:before,
+.menu-selections button .btn-content:after {
+    content: "";
+    background: transparent url('../assets/images/gui/Button_Left_Small.png');
+    width: 70px;
+    height: 82px;
+    position: absolute;
+    left: -70px; /* Same as width */
+    top: 0px;
+}
+.menu-selections button .btn-content:after {
+    background: transparent url('../assets/images/gui/Button_Right_Small.png');
+    width: 70px;
+    left: auto;
+    right: -70px; /* Same as width */
+}
+.menu-selections button:hover {
+    top: 1px;
+    left: 71px;
+}
+.menu-selections button .btn-content .icon {
+    position: absolute;
+    top: 16px;
+    left: -54px;
+    height: 50px;
+    width: 50px;
+    background: url("../assets/images/gui/checkbox-icon.png");
+}
+.menu-selections button.complete .btn-content .icon {
+    background: url("../assets/images/gui/checkedbox-icon.png");
+}
+.menu-selections button.failed .btn-content .icon {
+    background: url("../assets/images/gui/redX-icon.png");
+}

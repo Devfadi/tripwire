@@ -1,0 +1,17 @@
+name = Osint Map Views
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = fe_block
+dependencies[] = leaflet_more_maps
+dependencies[] = leaflet_views
+dependencies[] = views_data_export
+features[ctools][] = views:views_default:3.0
+features[fe_block_settings][] = views-osint_map-block_1
+features[fe_block_settings][] = views-osint_map-block_2
+features[features_api][] = api:2
+features[views_view][] = domestic_ied_incident_map_key
+features[views_view][] = osint_map
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][openlayers_views] = openlayers_views
+features_exclude[dependencies][views] = views

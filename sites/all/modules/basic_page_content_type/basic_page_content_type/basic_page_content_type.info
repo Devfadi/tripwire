@@ -1,0 +1,13 @@
+name = Basic Page content type
+core = 7.x
+package = Features
+dependencies[] = carousel_content_type
+dependencies[] = features
+dependencies[] = list
+dependencies[] = options
+dependencies[] = text
+features[features_api][] = api:2
+features[field_base][] = field_enable_lock_icon
+features[field_instance][] = node-page-body
+features[field_instance][] = node-page-field_enable_lock_icon
+features[node][] = page

@@ -1,0 +1,63 @@
+<?php
+/**
+ * @file
+ * Provides integration for vote results coming from Voting API
+ * to be able to index them via Search API.
+ */
+
+/**
+ * Implements hook_search_api_item_type_info().
+ */
+function search_api_voting_search_api_alter_callback_info() {
+  $callbacks['search_api_alter_voting'] = array(
+    'name' => t('Voting results'),
+    'description' => t('Add voting result information to the index.'),
+    'class' => 'SearchApiVotingAlterCallback',
+  );
+
+  return $callbacks;
+}
+
+/**
+ * Helper function to create the key of voting result related entity properties.
+ *
+ * @param string $tag
+ *   Machine name of the voting tag (vote, etc..).
+ * @param string $value_type
+ *   Machine name of the value type (points, percent, etc...).
+ * @param string $function
+ *   Machine name of the function (sum, average, etc...)
+ *
+ * @return string
+ *   The proper key for the property.
+ */
+function search_api_voting_get_property_key($tag = 'vote', $value_type = 'points', $function = 'average') {
+  return 'search_api_voting_' . $tag . '_' . $value_type . '_' . $function;
+}
+
+/**
+ * Helper function to get parameters from search api voting keys.
+ *
+ * @param $field_key
+ *   The machine name of search api property.
+ * @param string $param_name
+ *   The name of the parameter (tag, value_type, function).
+ *
+ * @return mixed
+ *   The appropriate parameter or FALSE.
+ */
+function search_api_voting_get_param($field_key, $param_name = 'tag') {
+  if (strpos($field_key, 'search_api_voting_') === 0) {
+    // Get tag, value type and function from the key.
+    $params = explode('_', $field_key);
+    switch ($param_name) {
+      case 'tag':
+        return $params[3];
+      case 'value_type':
+        return $params[4];
+      case 'function':
+        return $params[5];
+    }
+  }
+  return FALSE;
+}

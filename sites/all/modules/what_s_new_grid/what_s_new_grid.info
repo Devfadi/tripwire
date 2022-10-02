@@ -1,0 +1,8 @@
+name = What's New Grid
+core = 7.x
+package = Features
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = what_s_new_grid
+features_exclude[dependencies][ctools] = ctools

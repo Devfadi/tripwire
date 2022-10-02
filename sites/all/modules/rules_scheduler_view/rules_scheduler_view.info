@@ -1,0 +1,9 @@
+name = Rules Scheduler View
+core = 7.x
+package = Features
+dependencies[] = ctools
+dependencies[] = rules_scheduler
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features_exclude[dependencies][rules_scheduler] = rules_scheduler

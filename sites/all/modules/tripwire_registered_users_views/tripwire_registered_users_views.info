@@ -1,0 +1,12 @@
+name = TripWIRE Registered Users Views
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = views_data_export
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = new_account_registrations
+features[views_view][] = tripwire_registered_users
+features[views_view][] = user_totals
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][views] = views

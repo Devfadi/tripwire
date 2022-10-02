@@ -1,0 +1,858 @@
+<?php
+
+/**
+ * @file
+ * The tw_security_questions module allows for passwords to be reset without involving
+ * e-mail addresses through the use of security questions. This module would
+ * typically be used on sites that do not require users to enter their e-mail
+ * addresses - something that is possible only with a core hack, albeit a minor
+ * one.
+ *
+ * @todo
+ *   - Allow for multiple questions per user and choose the one to be displayed
+ *     at random.
+ *   - Allow more than one question to be answered by the user during the check.
+ *   - Consider breaking module up into a security question component and a
+ *     password reset component.
+ *   - Allow for the security question and/or password checks to be triggered
+ *     for sensitive areas of the site.
+ *   - Possibly allow users to add their own custom question and answer.
+ *   - Check if other types besides text questions can be used.
+ *
+ * @author Karthik Kumar ( http://drupal.org/user/21209 )
+ */
+
+/**
+ * Implements hook_help().
+ */
+function tw_security_questions_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/people/password-reset':
+      return t('<p>The Password reset module allows users to set up a security
+        question and answer which can, at a later date, be used to identify them
+        in case they are unable to access their account.</p>
+        <p>The following table lists the available security questions that the
+        user can choose from. It tabulates the actual questions along with the
+        number of users using them and also provides options to <em>Edit</em> or
+        <em>Delete</em> them as necessary. The <em>Empty</em> operation forces
+        any users using the associated question to make their choice again.</p>
+        <p>Additional questions can be added via the <em>Add question</em> tab.
+        Further configuration options for this module are available under the
+        <em>Settings</em> tab.</p>');
+    case 'admin/config/people/password-reset/edit/%':
+      return t('<p>If this question is being used by any users, then certain
+        fields can no longer be changed to ensure that existing answers are not
+        invalidated. To access these fields, first use the <em>Empty</em> option
+        via the question manager table to clear use of this question.</p>');
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function tw_security_questions_menu() {
+  global $user;
+
+  $items = array();
+
+  $items['admin/config/people/password-reset'] = array(
+    'title' => 'Password reset',
+    'description' => 'Configure security questions for the tw_security_questions module.',
+    'page callback' => 'tw_security_questions_admin_questions',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/list'] = array(
+    'title' => 'List',
+    'page callback' => 'tw_security_questions_admin_questions',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/add'] = array(
+    'title' => 'Add question',
+    'description' => 'Add a security question.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_security_questions_admin_edit'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/edit/%'] = array(
+    'title' => 'Edit question',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_security_questions_admin_edit', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/delete/%'] = array(
+    'title' => 'Delete question',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_security_questions_admin_delete', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/empty/%'] = array(
+    'title' => 'Empty question',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_security_questions_admin_empty', 5),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+    'file' => 'tw_security_questions.admin.inc'
+  );
+  $items['admin/config/people/password-reset/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Manage the Password reset module configuration options.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tw_security_questions_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'tw_security_questions.admin.inc',
+    'weight' => 10
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function tw_security_questions_menu_alter(&$items) {
+  unset($items['user/password']['file']);
+  $items['user/password']['title'] = 'Recover password';
+  $items['user/password']['page arguments'][0] = 'tw_security_questions_form';
+  $items['user/password']['access callback'] = 'user_is_anonymous';
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function tw_security_questions_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_profile_form':
+      if (!isset($_SESSION['usertrack'])) {
+        // Showing security questions in the case of HSIN user registering
+        if (!in_array('HSIN Pre-Authenticated', $form['#user']->roles)) {
+          // TRIP2-400: Removing security questions from user profile edit
+          break;
+        }
+      }
+      $form['#attached']['js'] = array(
+        drupal_get_path('module', 'tw_security_questions') . '/tw_security_questions.js',
+      );
+
+      tw_security_questions_form_inject($form);
+      $form['tw_security_questions']['#weight'] = -11;
+
+      // Track fields for the password field's description text.
+      $protected_values = array('pass' => t('Password'));
+
+      // We have to jump through a bunch of hoops to reuse the password
+      // verification system in core.
+      if (isset($form['account']['current_pass_required_values']) && _tw_security_questions_variable_get('password_verify')) {
+        // Since 'current_pass_required_values' does not allow a nested
+        // element, we create a temporary alternative.
+        $form['tw_security_questions_answer'] = array('#type' => 'value', '#value' => '');
+        // Add our element to the verification queue.
+        $form['account']['current_pass_required_values']['#value']['tw_security_questions_answer'] = t('Password reset question');
+        // We have a few more jumps to go in a validate function that needs to
+        // be triggered before those of the user module.
+        //$form['#validate'] = array('tw_security_questions_confirm_password_validate') + $form['#validate']; // caused 'array' to apper as signature in users table?
+        array_unshift($form['#validate'], 'tw_security_questions_confirm_password_validate');
+        // Add to protected values array which is used in the password field's
+        // description.
+        $protected_values['reset'] = t('Security question');
+      }
+
+      $questions = tw_security_questions_user_question_get($form['#user']->uid);
+
+      // Do not make the question and answer fields compulsory for admins.
+      $required = !($questions || _tw_security_questions_user_admin_check($form));
+      foreach ($form['tw_security_questions']['challenge'] as &$qna) {
+        $qna['question']['#required'] = $required;
+        $qna['answer']['#required'] = $required;
+      }
+      if ($questions) {
+        $form['tw_security_questions']['#attributes']['class'] = array('password-reset-question-set');
+        $i = 0; // question number (starting at 1)
+        foreach ($questions as $question) {
+          ++$i;
+          $form['tw_security_questions']['challenge'][$i]['question']['#default_value'] = $question->qid;
+          $form['tw_security_questions']['challenge'][$i]['question']['#description'] = t('Your chosen question.');
+          $form['tw_security_questions']['challenge'][$i]['answer']['#description'] = t('Your answer for the chosen question has <strong>already</strong> been saved. Add another answer only if you wish to overwrite the existing data.');
+          global $user;
+          $form['tw_security_questions']['challenge'][$i]['answer']['#default_value'] = decrypt($question->answer); 
+          if (array_intersect(array('administrator', 'Help Desk'), $user->roles)) { 
+            if (in_array('Help Desk', $user->roles)) {
+              $form['tw_security_questions']['challenge'][$i]['answer']['#disabled'] = TRUE;
+            }
+          }
+          // Boolean to indicate if this is to be an INSERT or an UPDATE query.
+          $form['tw_security_questions']['challenge'][$i]['update'] = array('#type' => 'value', '#value' => 1);
+        }
+      }
+
+      // The e-mail field is disabled. The fake address is to be used.
+      if (!_tw_security_questions_variable_get('email_profile')) {
+        $mail = $form['account']['mail']['#default_value'];
+        unset($form['account']['mail']);
+        $form['account']['mail'] = array('#type' => 'value', '#value' => $mail);
+      }
+      elseif (!_tw_security_questions_variable_get('email_registration')) {
+        // We are dealing with a possible fake address here. It would be ideal
+        // to make this optionally 'required'. But that would involve more
+        // jugglery as the user module validates the address everytime just as
+        // with the register function.
+        $mail = $form['account']['mail']['#default_value'];
+        if (stristr($mail, 'tw_security_questions_fake')) {
+          $form['account']['mail']['#default_value'] = '';
+        }
+
+        // Add to protected values array which is used in the password field's
+        // description.
+        $protected_values['mail'] = $form['account']['mail']['#title'];
+      }
+
+      // The #access is FALSE when the form is being viewed by a person
+      // resetting his account via a one-time login URL.
+      if (isset($form['account']['current_pass']['#access'])) {
+        if (isset($form['account']['current_pass']) && $form['account']['current_pass']['#access']) {
+          switch (count($protected_values)) {
+            case 1:
+              $form['account']['current_pass']['#description'] = t('Enter your current password to change the %pass.', array('%pass' => $protected_values['pass']));
+              break;
+            case 2:
+              if (isset($protected_values['mail'])) {
+                $form['account']['current_pass']['#description'] = t('Enter your current password to change the %pass or %mail.', array('%mail' => $protected_values['mail'], '%pass' => $protected_values['pass']));
+              }
+              else {
+                $form['account']['current_pass']['#description'] = t('Enter your current password to change the %pass or %reset.', array('%reset' => $protected_values['reset'], '%pass' => $protected_values['pass']));
+              }
+              break;
+            case 3:
+              $form['account']['current_pass']['#description'] = t('Enter your current password to change the %pass, %mail or %reset.', array('%mail' => $protected_values['mail'], '%reset' => $protected_values['reset'], '%pass' => $protected_values['pass']));
+              break;
+          }
+        }
+      }
+      break;
+    case 'user_register_form':
+      if (_tw_security_questions_variable_get('registration_form')) {
+        tw_security_questions_form_inject($form);
+        $form['#group_children']['tw_security_questions'] = 'group_accountinfo';
+        $form['tw_security_questions']['#attributes']['class'][] = 'tw-security-q-wrapper';
+      }
+
+      if (!_tw_security_questions_variable_get('email_registration')) {
+        // We disable e-mail verification every time just in case the admin has
+        // gone on a meddling rampage. In any event, the e-mails go to a dead
+        // address.
+        variable_set('user_email_verification', FALSE);
+
+        unset($form['account']['mail']);
+        $form['account']['mail'] = array('#type' => 'value', '#value' => _tw_security_questions_generate_fake_mail());
+        $form['#submit'][] = 'tw_security_questions_fake_mail_submit';
+      }
+      break;
+  }
+}
+
+/**
+ * Hacks to reuse the password verification system provided by user.module.
+ */
+function tw_security_questions_confirm_password_validate($form, &$form_state) {
+  // $form['account']['current_pass_required_values'] is not set if an admin is
+  // modifying an unprivileged account.
+  if (isset($form['account']['current_pass_required_values']) && _tw_security_questions_variable_get('password_verify')) {
+    // The user module compares the form value with the user object to check if
+    // the value (mail) has actually changed.
+    $form['#user']->tw_security_questions_answer = '';
+    // Set the value of our temporary element to the current answer.
+    // N.B. The value is trimmed in user_validate_current_pass().
+    // work out the first abswer passed and use that.
+    form_set_value($form['tw_security_questions_answer'], $form_state['values']['tw_security_questions']['challenge'][1]['answer'], $form_state);
+  }
+}
+
+/**
+ * Validate the tw_security_questions user and registration form submission.
+ * There are a few different scenarios to take care of during creation,
+ * validation and submission:
+ *   - User is admin, account is normal, question is new.
+ *   - User is admin, account is normal, question is an update.
+ *   - User is admin, account is his own, question is new.
+ *   - User is admin, account is his own, question is an update.
+ *   - User is normal, account is his own, question is new.
+ *   - User is normal, account is his own, question is an update.
+ *
+ * When question is an update or if the user is an admin looking at some other
+ * user's account, the form should go through even with an empty answer field.
+ */
+function tw_security_questions_user_form_validate($form, &$form_state) {
+  $form_values = $form_state['values']['tw_security_questions'];
+  $questions = array();
+
+  // check each challenge response
+  $num_questions = count($form_values['challenge']);
+  for ($i = 1; $i <= $num_questions; ++$i) {
+
+    $answer = filter_xss(_tw_security_questions_answer_sanitise($form_values['challenge'][$i]['answer']));
+    // Do not make the question and answer fields compulsory for admins.
+    // Allow admins to bypass only if the answer field is empty.
+    $required = TRUE;
+    if ($answer == '' && $form['#form_id'] == 'user_profile_form') {
+      $required = !(isset($form_values['challenge'][$i]['update']) || _tw_security_questions_user_admin_check($form));
+    }
+
+    if ($required && isset($form_values['challenge'][$i]['question'])) {
+      $error = FALSE;
+      // record question so we can check uniqueness later (not important if !required?)
+      $questions[$i] = $form_values['challenge'][$i]['question'];
+
+      $question = tw_security_questions_question_get($questions[$i]);
+      if ($question->answer_length > drupal_strlen($answer)) {
+        $error = TRUE;
+        form_set_error("tw_security_questions][challenge][$i][answer", t('The provided answer is too short. This question requires an answer which is at least %length characters in length.', array('%length' => $question->answer_length)));
+      }
+
+      if (!empty($question->regex) && !_tw_security_questions_regex_match($question->regex, $answer)) {
+        $error = TRUE;
+        form_set_error('tw_security_questions][challenge][$i][answer', t('%message', array('%message' => $question->regex_message)));
+      }
+
+      // If there's an answer validation error, then let the JS know so it can
+      // unhide the answer field by default.
+      if ($error) {
+        drupal_add_js(array('tw_security_questions' => array('invalid_answer' => 1)), 'setting');
+      }
+    }
+  }
+  // check that the questions are unique
+  foreach ($questions as $index => $question) {
+    // count how many array_keys contain the question as a value. Should only be one.
+    if (count(array_keys($questions, $question)) > 1) {
+      form_set_error("tw_security_questions][challenge][$index][question", t('Question !x: Questions can only be used once.', array('!x' => $index)));
+    }
+  }
+}
+
+/**
+ * Process the tw_security_questions user and registration form submission.
+ */
+function tw_security_questions_user_form_submit($form, &$form_state) {
+  $form_values = $form_state['values']['tw_security_questions'];
+
+  // store all the answers.
+  foreach ($form_values['challenge'] as $form_value) {
+    $answer = filter_xss(_tw_security_questions_answer_sanitise($form_value['answer']));
+
+    // Only save answer if one has been given to ensure we do not overwrite
+    // existing entries.
+    if ($form_value['question'] && !empty($answer)) {
+      $answer = _tw_security_questions_answer_encase($answer, $form_value['question']);
+
+      $record = array(
+        'uid' => $form_state['user']->uid,
+        'qid' => $form_value['question'],
+        'answer' => $answer
+      );
+      tw_security_questions_answer_add($record, isset($form_value['update']) ? array('uid', 'qid') : array());
+    }
+  }
+}
+
+/**
+ * Hacks to work around the compulsory e-mail address requirement.
+ */
+function tw_security_questions_fake_mail_submit($form, &$form_state) {
+  // Vet drupal_get_message to remove message with traces of the word e-mail.
+  $messages = drupal_get_messages(NULL, FALSE);
+  drupal_get_messages(NULL, TRUE);
+
+  if (isset($messages['status'])) {
+    foreach ($messages['status'] as $id => $message) {
+      if (stristr($message, t('e-mail'))) {
+        unset($messages['status'][$id]);
+      }
+    }
+  }
+
+  // Readd messages.
+  foreach ($messages as $type => $list) {
+    foreach ($list as $message) {
+      drupal_set_message($message, $type);
+    }
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function tw_security_questions_user_login(&$edit, $account) {
+  // When no e-mail verification or admin approval is required, the user is
+  // logged into the site in user_register_submit without immediately bothering
+  // with the rest of the #submit hooks. These hooks are engaged at a later
+  // date. However, the drupal_goto() below can interrupt this flow.
+  if (isset($edit['values']) && isset($edit['values']['tw_security_questions'])) {
+  }
+  elseif (_tw_security_questions_variable_get('redirect_user')) {
+    $question = tw_security_questions_user_question_get($account->uid);
+    if ($question === FALSE) {
+      drupal_set_message(t('Please choose a security question and answer for your account. This question will be used to verify your identity in case you ever forget your password.'));
+
+      // Redirect user to edit page and preserve the existing destination,
+      // if available.
+      $destination = drupal_get_destination();
+      unset($_REQUEST['destination'], $_POST['destination'], $_GET['destination']);
+      drupal_goto('user/' . $account->uid . '/edit', $destination);
+    }
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function tw_security_questions_user_delete($account) {
+  db_delete('tw_security_questions_users')
+    ->condition('uid', $account->uid)
+    ->execute();
+}
+
+/**
+ * Menu callback: A multi-step form to validate and reset the password for a
+ * user.
+ */
+function tw_security_questions_form($form, &$form_state) {
+  $flood_limit = _tw_security_questions_variable_get('flood_control');
+
+  if ($flood_limit && !flood_is_allowed('tw_security_questions', $flood_limit)) {
+    $form['flood'] = array(
+      '#type' => 'item',
+      '#markup' => t('For security reasons, password reset attempts are limited to %limit per hour. Please try again later.', array('%limit' => $flood_limit))
+    );
+
+    return $form;
+  }
+
+  $step = isset($form_state['storage']['step']) ? $form_state['storage']['step'] + 1 : 1;
+  $form['step'] = array('#type' => 'value', '#value' => $step);
+
+  switch ($step) {
+    case 2:
+      $user = user_load_by_name($form_state['values']['username']);
+      $uid = $user && $user->status ? $user->uid : 0;
+
+      // Try to retrieve the question for a valid user.
+      $questions = $uid ? tw_security_questions_user_question_get($uid) : FALSE;
+      
+      if ($questions === FALSE) {
+        // Question not found, user does not exist or does not have a question
+        // selected. We don't want to give any information away. So we select a
+        // questions using a checksum over the name for consistency (if we do a
+        // random select, submitting the form twice will tell an attacker that
+        // it is an invalid username).
+        // keep track of used questions so we don't present the same one twice.
+        $num_user_questions = _tw_security_questions_variable_get('num_questions');
+        $all_questions = tw_security_questions_questions_get();
+        for ($i = 0; $i < $num_user_questions; ++$i) {
+          $count = count($all_questions);
+          if ($count) {
+            $checksum = crc32(drupal_strtolower($form_state['values']['username']));
+            $keys = array_keys($all_questions);
+            $qid = $keys[abs($checksum % $count)];
+
+            $question = new stdClass();
+            $question->qid = $qid;
+            $question->question = $all_questions[$qid];
+            // Reuse function to generate random answer for the invalid attempt.
+            $question->answer = _tw_security_questions_generate_fake_mail();
+            $questions[] = $question;
+            // remove the question just chosen so it can't be used again.
+            unset($all_questions[$qid]);
+          }
+        }
+      }
+      if ($questions) {
+        $form['username'] = array('#type' => 'value', '#value' => $form_state['values']['username']);
+        $form['uid'] = array('#type' => 'value', '#value' => $uid);
+        $form['challenge']['#tree'] = TRUE;
+
+        $i = 0;
+        foreach ($questions as $question) {
+          ++$i;
+          $form['challenge'][$i]['question_object'] = array('#type' => 'value', '#value' => $question);
+
+          $form['challenge'][$i]['question'] = array(
+            '#type' => 'item',
+            '#title' => t('Security question !x', array('!x' => $i)),
+            '#markup' => t('%question', array('%question' => $question->question))
+          );
+          $form['challenge'][$i]['answer'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Answer'),
+            '#description' => t('Enter the answer to the above question.'),
+            '#required' => TRUE,
+            '#weight' => 2
+          );
+        }
+        $form['operation'] = array(
+          '#type' => 'submit',
+          '#value' => t('Next'),
+          '#weight' => 3
+        );
+      }
+      break;
+    case 3:
+      // Use user_load() here as user_pass_reset_url() requires the user object.
+      $account = user_load($form_state['values']['uid']);
+
+      $reset_url = l(t('Click here'), user_pass_reset_url($account));
+      $form['content'] = array(
+        '#type' => 'item',
+        '#markup' => t('You successfully answered the security questions!  !click-here to reset your password.', array('!click-here' => $reset_url))
+      );
+
+      watchdog('user', 'One-time login link created for %username (uid: !uid).', array('%username' => $account->name, '!uid' => $account->uid), WATCHDOG_NOTICE, l(t('View'), 'user/' . $account->uid));
+      break;
+    default:
+      $form['username'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Username'),
+        '#description' => t('Enter your username (not email address) that you use on this site.<div style="margin: 9px 0">If you are unable to validate your account using the Security Questions, please contact the Help Desk.</div> <div>TRIPwire Help Desk <br>Monday-Friday 8:00 A.M. to 5:00 P.M. EST <br>Phone: 1-866-987-9473 (toll-free) <br>Email: <a href="mailto:tripwirehelp@dhs.gov">tripwirehelp@dhs.gov</a></div>'),
+        '#required' => TRUE
+      );
+      $form['operation'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next'),
+        '#weight' => 2
+      );
+    break;
+  }
+
+  return $form;
+}
+
+/**
+ * Validate tw_security_questions_form submissions.
+ *
+ * @todo Consider if user_needs_new_hash() might be necessary here.
+ */
+function tw_security_questions_form_validate($form, &$form_state) {
+  // Do not validate the username for step = 1, as we don't want to give away
+  // the information that a username is (in)valid.
+  if ($form_state['values']['step'] == 2) {
+    // If this is a flood, redirect the user to Step 1 which should disable the
+    // form.
+    $flood_limit = _tw_security_questions_variable_get('flood_control');
+    if ($flood_limit && !flood_is_allowed('tw_security_questions', $flood_limit)) {
+      drupal_goto('user/password');
+    }
+    
+    $uid = $form_state['values']['uid'];
+    require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+    // check each answer
+    foreach ($form_state['values']['challenge'] as $qna) {
+      $question = $qna['question_object'];
+      $answer = filter_xss(_tw_security_questions_answer_sanitise($qna['answer']));
+      $answer = _tw_security_questions_answer_encase($answer, $question->qid); 
+      // TRIP2-536: Adding a check for blank answers to ensure fields are filled in.
+      if ($answer == '') {
+        form_set_error('challenge', t('Information was entered incorrectly, please try again.'));
+        return;
+      }
+
+      if (count($form_state['values']['challenge']) == 1) {
+        $response = 'The answer you entered is incorrect, please try again.';
+      }
+      if (count($form_state['values']['challenge']) > 1) {
+        $response = 'One or more of your answers is incorrect, please try again.';
+      }
+      // TRIP2-536: Adding check for a fake user and to handle appropriately
+      if (strpos($question->answer, 'tw_security_questions_fake') !== false) {
+        form_set_error('challenge', t($response));
+      } else {
+        if (!$question || !_tw_security_questions_answer_check($question->answer, $answer)) {
+          form_set_error('challenge', t($response));
+        }
+      }
+    }
+
+    flood_register_event('tw_security_questions');
+  }
+}
+
+/**
+ * Process tw_security_questions_form submissions.
+ */
+function tw_security_questions_form_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  $form_state['storage']['step'] = $form_state['values']['step'];
+}
+
+/**
+ * Inject password reset question elements into form.
+ */
+function tw_security_questions_form_inject(&$form) {
+  $form['tw_security_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Security questions'),
+    '#description' => t('To reset your password in case you have forgotten it, security questions will be asked to verify your identity.'),
+    '#tree' => TRUE,
+    '#collapsible' => TRUE,
+    '#weight' => 0,
+  );
+  $num_questions = _tw_security_questions_variable_get('num_questions');
+  for ($i = 1; $i <= $num_questions; ++$i) {
+    $form['tw_security_questions']['challenge'][$i]['question'] = array(
+      '#type' => 'select',
+      '#title' => t('Question !x', array('!x' => $i)),
+      '#description' => t('Choose the question that you would like asked (can only be used once).'),
+      '#options' => tw_security_questions_questions_get(),
+      '#required' => TRUE,
+      '#weight' => $i * 2,
+    );
+    $form['tw_security_questions']['challenge'][$i]['answer'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Answer !x', array('!x' => $i)),
+      '#description' => t('Type the answer to the question you have chosen.'),
+      '#maxlength' => 255,
+      '#required' => TRUE,
+      '#weight' => $i * 2 + 1,
+    );
+    if ($num_questions == 1) {
+      $form['tw_security_questions']['challenge'][$i]['question']['#title'] = t('Question');
+      $form['tw_security_questions']['challenge'][$i]['answer']['#title'] = t('Answer');
+      $form['tw_security_questions']['challenge'][$i]['question']['#description'] = t('Choose the question that you would like asked.');
+    }
+    
+  }
+  $form['#validate'][] = 'tw_security_questions_user_form_validate';
+  $form['#submit'][] = 'tw_security_questions_user_form_submit';
+}
+
+/**
+ * Save the answer to a security question.
+ *
+ * @param Array $record
+ *   An array containing answer information formatted for drupal_write_record().
+ * @param Array $update
+ *   In case of an update, add the key, else leave empty.
+ * @return $status
+ *   Status variable as per drupal_write_record.
+ */
+function tw_security_questions_answer_add($record, $update = array()) {
+  require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+  //$record['answer'] = user_hash_password($record['answer']);
+  //dpm("Answer will be " . $record['answer']);
+  $record['answer'] = encrypt($record['answer']);
+
+  return drupal_write_record('tw_security_questions_users', $record, $update);
+}
+
+/**
+ * Delete a security question.
+ *
+ * @param Array $question
+ *   An array containing question information.
+ */
+function tw_security_questions_question_delete($question) {
+  db_delete('tw_security_questions')
+    ->condition('qid', $question['qid'])
+    ->execute();
+  tw_security_questions_question_empty($question);
+
+  watchdog('user', 'Security question %question deleted.', array('%question' => $question['question']));
+}
+
+/**
+ * Empty all use of a security question.
+ *
+ * @param Array $question
+ *   An array containing question information.
+ */
+function tw_security_questions_question_empty($question) {
+  db_delete('tw_security_questions_users')
+    ->condition('qid', $question['qid'])
+    ->execute();
+
+  watchdog('user', 'Security question %question emptied.', array('%question' => $question['question']));
+}
+
+/**
+ * Retrieve all available questions.
+ */
+function tw_security_questions_questions_get() {
+  return db_query('SELECT qid, question FROM {tw_security_questions} ORDER BY question')->fetchAllKeyed();
+}
+
+/**
+ * Retrieve a particular question.
+ *
+ * @param $qid
+ *   The ID of the question to retrieve.
+ * @return
+ *   A question object.
+ */
+function tw_security_questions_question_get($qid, $count = FALSE) {
+  if ($count) {
+    return db_query('SELECT pr.*, COUNT(pru.qid) as total FROM {tw_security_questions} pr LEFT JOIN {tw_security_questions_users} pru USING (qid) WHERE pr.qid = :qid GROUP BY pr.qid', array(':qid' => $qid))->fetchObject();
+  }
+  else {
+    return db_query('SELECT * FROM {tw_security_questions} WHERE qid = :qid', array(':qid' => $qid))->fetchObject();
+  }
+}
+
+/**
+ * Retrieve questions and answers specific to a user.
+ */
+function tw_security_questions_user_question_get($uid) {
+  return db_query('SELECT pr.qid, pr.question, pru.answer
+    FROM {tw_security_questions_users} pru
+    INNER JOIN {tw_security_questions} pr USING (qid)
+    WHERE pru.uid = :uid', array(':uid' => $uid))
+    ->fetchAll();
+}
+
+/**
+ * Helper function to check if it's an admin managing an unprivileged user.
+ *
+ * @param Array $form
+ *   The form array.
+ * @return Boolean
+ *   TRUE if it's an admin viewing a user's account page. FALSE otherwise.
+ */
+function _tw_security_questions_user_admin_check($form) {
+  $uid = $form['#user']->uid;
+
+  return $uid != $GLOBALS['user']->uid && user_access('administer users');
+}
+
+/**
+ * Helper function to check if the user's answer matches the hashed version
+ * stored in the database.
+ *
+ * @param String $hash
+ *   The hashed answer stored in the database.
+ * @param String $input
+ *   The answer provided by the user.
+ * @return Boolean
+ *   TRUE if it's a match and FALSE otherwise.
+ */
+function _tw_security_questions_answer_check($hash, $input) {
+  $input = _tw_security_questions_answer_sanitise($input);
+  if (decrypt($hash) === $input)  {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+/**
+ * Helper function to clean up the user's input prior to saving it or checking it
+ * against the stored version.
+ *
+ * @param String $answer
+ *   The user's input.
+ * @return String
+ *   A sanitised version of the answer.
+ */
+function _tw_security_questions_answer_sanitise($answer) {
+  return trim($answer);
+}
+
+/**
+ * Helper function to lowercase the answer if the option is enabled.
+ *
+ * @param String $answer
+ *   The user's input.
+ * @param Integer $qid
+ *   The question ID.
+ * @return String
+ *   An appropriately case version of the answer.
+ */
+function _tw_security_questions_answer_encase($answer, $qid) {
+  $question = tw_security_questions_question_get($qid);
+
+  return $question->case_sensitive ? $answer : drupal_strtolower($answer);
+}
+
+/**
+ * Helper function to perform a regex match for a string.
+ *
+ * @param String $pattern
+ *   The regular expression pattern.
+ * @param Integer $subject
+ *   The string to apply the pattern to.
+ * @return Integer
+ *   The number of matches or FALSE if an error.
+ */
+function _tw_security_questions_regex_match($pattern, $subject) {
+  return preg_match($pattern, $subject);
+}
+
+/**
+ * Helper function to generate a fake (but unique) e-mail address.
+ *
+ * @return String
+ *   The fake e-mail address.
+ */
+function _tw_security_questions_generate_fake_mail() {
+  // A black hole address.
+  return uniqid('tw_security_questions_fake_') . '@example.com';
+}
+
+/**
+ * Return a Password reset module variable.
+ *
+ * @param $name
+ *   The name of the variable to retrieve. If not set, then all variables are
+ *   returned.
+ * @param $reset
+ *   Reset the static variables array to ensure that its value is not outdated.
+ * @return
+ *   The value of the variable(s) requested.
+ */
+function _tw_security_questions_variable_get($name = NULL, $reset = FALSE) {
+  static $variables = array();
+
+  if ($reset) {
+    $variables = array();
+  }
+
+  if (empty($variables)) {
+    $defaults = array(
+      'email_registration' => TRUE,
+      'email_profile' => TRUE,
+      'flood_control' => 3,
+      'password_verify' => TRUE,
+      'redirect_user' => TRUE,
+      'registration_form' => TRUE,
+      'num_questions' => 1,
+    );
+    $variables = variable_get('tw_security_questions', array());
+    $variables = array_merge($defaults, $variables);
+  }
+
+  return $name ? $variables[$name] : $variables;
+}
+
+/**
+ * Set a Password reset module variable. This is used by Simpletest.
+ *
+ * @param $name
+ *   The name of the variable to set.
+ * @param $value
+ *   The value to set the variable to.
+ */
+function _tw_security_questions_variable_set($name, $value) {
+  $variables = _tw_security_questions_variable_get();
+  $variables[$name] = $value;
+
+  $variables = variable_set('tw_security_questions', $variables);
+
+  // Clear static cache.
+  _tw_security_questions_variable_get(NULL, TRUE);
+}

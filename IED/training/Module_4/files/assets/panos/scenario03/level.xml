@@ -1,0 +1,108 @@
+<krpano onstart="action(start)" basedir="%HTMLPATH%">
+    <view
+		hlookat   = "198.8053122134438"
+		vlookat   = "0"
+		fov       = "55"
+		limitview = "range"
+		/>
+
+	<events
+		onxmlcomplete     = "js(aden.pano.onPanoXMLComplete();)"
+		onpreviewcomplete = "js(aden.pano.onPanoPreviewComplete();)"
+		onloadcomplete    = "js(aden.pano.onPanoLoadComplete();)"
+		onnewpano         = "js(aden.pano.onPanoLoadStart());"
+		onremovepano      = "js(aden.pano.onPanoRemove();)"
+		onloaderror       = "js(aden.pano.onPanoLoadError();)"
+		/>
+		
+    <action name="start">
+        set(control.mousetype,moveto);
+        set(cursors.url,%HTMLPATH%/files/assets/images/cursors/qtvr-cursors.png);
+        set(cursors.type,8way);
+        set(cursors.move,       0|0|16|16);
+        set(cursors.drag,      16|0|16|16);
+        set(cursors.arrow_u,   32|0|16|16);
+        set(cursors.arrow_d,   48|0|16|16);
+        set(cursors.arrow_l,   64|0|16|16);
+        set(cursors.arrow_r,   80|0|16|16);
+        set(cursors.arrow_lu,  96|0|16|16);
+        set(cursors.arrow_ru, 112|0|16|16);
+        set(cursors.arrow_rd, 128|0|16|16);
+        set(cursors.arrow_ld, 144|0|16|16);
+        js(aden.pano.onPanoStart());
+		</action>
+		
+    <action name="preloadimage">
+        <!-- 1. parameter = internal ID,  2. parameter = url -->
+        addplugin(pre_%1);
+        set(plugin[pre_%1].visible, false);
+        set(plugin[pre_%1].onloaded, trace(preload %2 done);removeplugin(pre_%1);js(handleImageLoad()) );
+        set(plugin[pre_%1].url, %2);
+        js(console.log(starting preloading %2));
+		</action>
+    
+	<style
+		name    = "skin_hotspotstyle"
+		url     = "%HTMLPATH%/files/assets/images/hotspots/vtourskin_hotspot.png"
+		scale   = "1.0"
+		edge    = "top"
+		oy      = "0"
+		zorder  = "150"
+		onclick = "looktohotspot(get(name),55);js(aden.pano.load(get(linkedscene))););"
+		/>
+	
+	<scene name="BehindColumn" title="BehindColumn">
+		<preview url="%HTMLPATH%/files/assets/panos/scenario03/BehindColumn.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/scenario03/BehindColumn.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/scenario03/BehindColumn.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+    
+    <scene name="Backpack" title="Backpack">
+		<preview url="%HTMLPATH%/files/assets/panos/scenario03/Backpack.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/scenario03/Backpack.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/scenario03/Backpack.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+	
+	<scene name="ParkingLot" title="ParkingLot">
+		<preview url="%HTMLPATH%/files/assets/panos/scenario03/ParkingLot.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/scenario03/ParkingLot.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/scenario03/ParkingLot.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+	
+	<scene name="Evacuate" title="Evacuate">
+		<preview url="%HTMLPATH%/files/assets/panos/scenario03/Evacuate.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/scenario03/Evacuate.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/scenario03/Evacuate.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+	
+	<scene name="Concourse" title="Concourse">
+		<preview url="%HTMLPATH%/files/assets/panos/scenario03/Concourse.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/scenario03/Concourse.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/scenario03/Concourse.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+		<!-- place your scene hotspots here -->
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="180.534" atv="1.594" linkedscene="behindcolumn" />
+	</scene>
+	
+    <preview type="grid(cube,16,16,512,0x00FF00,0x000000,0x999999);" details="16" />
+	
+</krpano>

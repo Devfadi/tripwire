@@ -1,0 +1,30 @@
+
+#playlist {
+    background: none repeat scroll 0 0 #27577d;
+    border-radius: 0 0 20px 20px;
+    height: 200px;
+    left: 50%;
+    margin-left: -150px;
+    position: absolute;
+    top: 0;
+    width: 300px;
+}
+#playlist .title {
+    bottom: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+#playlist .trigger-list {
+    position: relative;
+    top: 8px;
+}
+#playlist .playlist-trigger {
+    font-size: 18px;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+}

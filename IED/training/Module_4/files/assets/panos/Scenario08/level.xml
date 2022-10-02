@@ -1,0 +1,124 @@
+<krpano onstart="action(start)" basedir="%HTMLPATH%">
+    <view
+		hlookat   = "198.8053122134438"
+		vlookat   = "0"
+		fov       = "55"
+		limitview = "range"
+		/>
+
+	<events
+		onxmlcomplete     = "js(aden.pano.onPanoXMLComplete();)"
+		onpreviewcomplete = "js(aden.pano.onPanoPreviewComplete();)"
+		onloadcomplete    = "js(aden.pano.onPanoLoadComplete();)"
+		onnewpano         = "js(aden.pano.onPanoLoadStart());"
+		onremovepano      = "js(aden.pano.onPanoRemove();)"
+		onloaderror       = "js(aden.pano.onPanoLoadError();)"
+		/>
+		
+    <action name="start">
+        set(control.mousetype,moveto);
+        set(cursors.url,%HTMLPATH%/files/assets/images/cursors/qtvr-cursors.png);
+        set(cursors.type,8way);
+        set(cursors.move,       0|0|16|16);
+        set(cursors.drag,      16|0|16|16);
+        set(cursors.arrow_u,   32|0|16|16);
+        set(cursors.arrow_d,   48|0|16|16);
+        set(cursors.arrow_l,   64|0|16|16);
+        set(cursors.arrow_r,   80|0|16|16);
+        set(cursors.arrow_lu,  96|0|16|16);
+        set(cursors.arrow_ru, 112|0|16|16);
+        set(cursors.arrow_rd, 128|0|16|16);
+        set(cursors.arrow_ld, 144|0|16|16);
+        js(aden.pano.onPanoStart());
+		</action>
+		
+    <action name="preloadimage">
+        <!-- 1. parameter = internal ID,  2. parameter = url -->
+        addplugin(pre_%1);
+        set(plugin[pre_%1].visible, false);
+        set(plugin[pre_%1].onloaded, trace(preload %2 done);removeplugin(pre_%1);js(handleImageLoad()) );
+        set(plugin[pre_%1].url, %2);
+        js(console.log(starting preloading %2));
+		</action>
+    
+	<style
+		name    = "skin_hotspotstyle"
+		url     = "%HTMLPATH%/files/assets/images/hotspots/vtourskin_hotspot.png"
+		scale   = "1.0"
+		edge    = "top"
+		oy      = "0"
+		zorder  = "150"
+		onclick = "looktohotspot(get(name),55);js(aden.pano.load(get(linkedscene))););"
+		/>
+	
+	<style
+		name    = "skin_triggerstyle"
+		url     = "%HTMLPATH%/files/assets/images/hotspots/vtourskin_hotspot.png"
+		scale   = "1.0"
+		edge    = "top"
+		oy      = "0"
+		zorder  = "150"
+		/>
+	
+	<scene name="bathrooms" title="bathrooms">
+		<view
+			hlookat   = "193"
+			vlookat   = "0"
+		/>
+		<preview url="%HTMLPATH%/files/assets/panos/Scenario08/Bathrooms.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Bathrooms.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Bathrooms.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+    
+    <scene name="charred" title="charred">
+		<view
+			hlookat   = "58"
+			vlookat   = "28"
+		/>
+		<preview url="%HTMLPATH%/files/assets/panos/Scenario08/Charred.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Charred.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Charred.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+	
+	<scene name="road" title="road">
+		<view
+			hlookat   = "85"
+			vlookat   = "0"
+		/>
+		<preview url="%HTMLPATH%/files/assets/panos/Scenario08/Road.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Road.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Road.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+		<hotspot 
+		    name="spot1"
+		    style="skin_triggerstyle"
+            ath="85.0"
+            atv="0.0"
+            onclick="looktohotspot(get(name),55);js(aden.fsm.scenario08.trigger(click-arrow););" 
+            />
+	</scene>
+	
+	<scene name="barricades" title="barricades">
+		<preview url="%HTMLPATH%/files/assets/panos/Scenario08/Barricades.tiles/preview.jpg" />
+		<image>
+			<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Barricades.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="%HTMLPATH%/files/assets/panos/Scenario08/Barricades.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+	</scene>
+	
+    <preview type="grid(cube,16,16,512,0x00FF00,0x000000,0x999999);" details="16" />
+	
+</krpano>

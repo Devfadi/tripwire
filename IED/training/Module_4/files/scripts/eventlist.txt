@@ -1,0 +1,109 @@
+┌─────────────────┐  
+│ EVENT TYPE REF  │  
+└─────────────────┘  
+msg:*                       -- event which messages other components
+get:*                       -- event which triggers a function call
+set:*                       -- event used to set a value
+trigger:*                   -- trigger a specific event
+
+┌───────────────┐  
+│ ENGINE EVENTS │  
+└───────────────┘  
+msg:engine:start            -- engine started
+msg:engine:init             -- engine initialized
+msg:engine:load             -- triggered after new level data has loaded
+msg:engine:update           -- triggers all engine components to update
+msg:engine:lateUpdate       -- secondary update message fired after all components have updated
+msg:engine:draw             -- triggers all engine components to draw to the DOM
+msg:engine:pause            -- engine paused
+msg:engine:resume           -- engine resumed from pause
+msg:engine:stop             -- engine stopped
+msg:engine:reload           -- engine reloaded
+msg:engine:resize           -- engine resized
+trigger:engine:pause        -- triggers engine pause
+trigger:engine:resume       -- triggers engine resume
+trigger:engine:level        -- triggers engine level
+get:engine:reference        -- returns reference to the engine
+
+┌──────────────────┐
+│ ADVOBJECT EVENTS │
+└──────────────────┘
+msg:object:init             -- advObject has been initialized
+msg:object:destroy          -- advObject has been destroyed
+msg:object:create           -- advObject has been created
+
+┌───────────────┐  
+│ PLUGIN EVENTS │  
+└───────────────┘  
+msg:plugin:ready            -- plugin is ready
+msg:plugin:destroy          -- plugin is being destroyed
+
+┌───────────────────┐  
+│                   │  
+└───────────────────┘  
+
+
+┌───────────────────┐  
+│ ENGINE - KRPANO   │  
+└───────────────────┘  
+msg:pano:loaded             -- indicates pano has loaded
+
+┌───────────────────┐  
+│ ENGINE - LAYERS   │  
+└───────────────────┘  
+trigger:engine:layer:add            -- adds a layer
+trigger:engine:layer:remove         -- removes a layer
+trigger:engine:layer:sendToTop      -- sends a layer to the top
+trigger:engine:layer:sendToBottom   -- sends a layer to the bottom
+trigger:engine:layer:sendAbove      -- sends a layer above another layer
+trigger:engine:layer:sendBelow      -- sends a layer below another layer
+trigger:engine:layer:update         -- updates layer z-indexes
+
+┌────────────┐  
+│ FSM EVENTS │  
+└────────────┘  
+trigger:fsm:event           -- triggers a fsm event on all FSMs                             
+trigger:fsm:{name}:event    -- triggers a fsm event on a specific fsm (pass in event name)                             
+msg:fsm:state:exit          -- fired when an fsm exits a state                             
+msg:fsm:state:enter         -- fired when an fsm enters a state
+msg:fsm:event:error         -- fired when there is an error triggering an event      
+msg:fsm:event:before        -- fired before an fsm event is triggered                                               
+msg:fsm:event:after         -- fired after an fsm event is triggered                                                 
+msg:fsm:{name}:state:exit   -- fired when an fsm exits a state                              
+msg:fsm:{name}:state:enter  -- fired when an fsm enters a state                              
+msg:fsm:{name}:event:error  -- fired when there is an error triggering an event
+msg:fsm:{name}:event:before -- fired before an fsm event is triggered                              
+msg:fsm:{name}:event:after  -- fired after an fsm event is triggered
+                            -- 
+┌───────────────────┐  
+│ MODULE - PRELOAD  │  
+└───────────────────┘  
+trigger:preload:hide
+trigger:preload:show
+trigger:preload:update
+set:preload:message
+set:preload:template
+ 
+┌───────┐  
+│ DEBUG │  
+└───────┘  
+set:debug:log
+set:debug:msg
+set:debug:trace
+set:debug:info
+set:debug:warn
+set:debug:error
+trigger:debug:clear
+trigger:debug:show
+trigger:debug:hide
+trigger:debug:toggle
+
+┌───────────────────┐  
+│                   │  └───────────────────┘                              -- 
+                            -- 
+                            -- 
+                            -- 
+                            -- 
+                            -- 
+                            -- 
+                            -- 

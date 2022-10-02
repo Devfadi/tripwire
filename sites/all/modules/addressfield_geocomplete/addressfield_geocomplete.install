@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall hooks for Addressfield Geocomplete.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function addressfield_geocomplete_uninstall() {
+  variable_del('addressfield_geocomplete_google_api_key');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function addressfield_geocomplete_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime') {
+    $t = get_t();
+
+    // Google API Key.
+    $google_api_key = variable_get('addressfield_geocomplete_google_api_key', FALSE);
+    $requirements['addressfield_geocomplete_google_api_key'] = array(
+      'title' => 'Google API Key',
+      'value' => $google_api_key ? $google_api_key : $t('Not found'),
+      'description' => $t('The Google Places API requires an !key_link.', array(
+        '!key_link' => l($t('API Key'), 'https://developers.google.com/maps/documentation/javascript/get-api-key', array('external' => TRUE)),
+      )),
+      'severity' => $google_api_key ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+    );
+
+    // geocomplete.
+    $plugin = libraries_detect('geocomplete');
+    if (!$plugin['installed']) {
+      $requirements['geocomplete'] = array(
+        'title' => $t('Geocomplete'),
+        'value' => $t('Not found'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('You need to download the !library and extract the contents into the %path directory.', array(
+          '!library' => l($t('Geocomplete'), 'https://github.com/ubilabs/geocomplete', array('target' => '_blank')),
+          '%path' => 'sites/all/libraries/geocomplete',
+        )),
+      );
+    }
+    else {
+      if (version_compare($plugin['version'], '1.6.0', '>=')) {
+        $requirements['geocomplete'] = array(
+          'title' => $t('Geocomplete'),
+          'value' => $plugin['version'],
+          'severity' => REQUIREMENT_OK,
+        );
+      }
+      else {
+        $requirements['geocomplete'] = array(
+          'title' => $t('Geocomplete'),
+          'value' => $plugin['version'],
+          'severity' => REQUIREMENT_ERROR,
+          'description' => $t('Version @version of the Geocomplete library is required.', array(
+            '@version' => '1.6.0',
+          )),
+        );
+      }
+    }
+  }
+
+  return $requirements;
+}

@@ -1,0 +1,189 @@
+diff --git a/reference_option_limit.module b/reference_option_limit.module
+index 6e32135..e8c4658 100644
+--- a/reference_option_limit.module
++++ b/reference_option_limit.module
+@@ -263,6 +263,9 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+     return;
+   }
+ 
++  // Copy settings so that the AJAX handler can alter the processing order.
++  $reference_option_limit_settings = $form_state['reference_option_limit'];
++
+   // If we are on an AJAX call, check that it's one that concerns us.
+   if (!empty($form_state['triggering_element'])) {
+     // Determine whether the triggering element is part of a field widget, and
+@@ -303,38 +306,31 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+       return;
+     }
+ 
++    // AJAX entries stack that will be populated by the check for dependencies.
++    $ajax_entries = array();
+     // Flag to keep track of whether we've matched something. If it remains
+-    // FALSE after the foreach loop, we should not go further.
+-    $match = FALSE;
+-    // Check each limited field to see if the AJAX trigger is one of its
+-    // matching fields.
+-    foreach ($form_state['reference_option_limit'] as $field_name => $settings) {
+-      // Try to find triggering element field name in the list of matching
+-      // fields.
+-      if (in_array(
+-            $triggering_element_field_name,
+-            $settings['fields_match']
+-          )) {
+-        $match = TRUE;
+-
+-        // Store the path of the form element we're limiting for our AJAX
+-        // callback to return. This saves the callback from repeating the work
+-        // we've just done here.
+-        // We are however too early in the form build process for the
+-        // '#array_parents' property to have been set, so we have to build
+-        // this ourselves: the path is the '#field_parents' with the field
+-        // name appended.
+-        $form_path = $settings['field_parents'];
+-        $form_path[] = $field_name;
+-        $form_state['reference_option_limit_ajax_return'] = $form_path;
++    // FALSE after trying to add dependencies, we should not go further.
++    $match = _reference_option_limit_add_dependencies($ajax_entries, $form_state, $triggering_element_field_name);
+ 
+-        break;
+-      }
+-    }
+     if ($match == FALSE) {
+       // The triggering element has nothing to do with our fields: bail.
+       return;
+     }
++    else {
++      // Erradicate duplicates, keeping the last unique entry. The dependency
++      // adder doesn't check for duplicates so that we can do this and use the
++      // result to rebuild the processing order to handle dependencies properly.
++      $ajax_entries = array_reverse(array_unique(array_reverse($ajax_entries), SORT_REGULAR));
++      $form_state['reference_option_limit_ajax_entries'] = $ajax_entries;
++
++      // Alter the order fields are processed in to match dependencies.
++      foreach ($form_state['reference_option_limit_ajax_entries'] as $entry) {
++        $field_name = $entry[count($entry) - 1];
++        $settings = $reference_option_limit_settings[$field_name];
++        unset($reference_option_limit_settings[$field_name]);
++        $reference_option_limit_settings[$field_name] = $settings;
++      }
++    }
+   }
+   //dsm($form, 'hfa form');
+   //dsm($form_state, 'hfa fs');
+@@ -354,7 +350,7 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+   }
+ 
+   // For each field to work on.
+-  foreach ($form_state['reference_option_limit'] as $settings) {
++  foreach ($reference_option_limit_settings as $settings) {
+     // Get the current field name, info, and instance.
+     $field_name_option_limited = $settings['field'];
+     $field_option_limited = field_info_field($field_name_option_limited);
+@@ -364,8 +360,8 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+     $element_limited =& $form[$field_name_option_limited];
+ 
+     // Add a wrapper div to the limited field for the ajax to work on.
+-    $settings['ajax_wrapper'] = 'reference-options-limit-' . str_replace('_', '-', $field_name_option_limited);
+-    $element_limited['#prefix'] = '<div id="' . $settings['ajax_wrapper'] . '">';
++    $ajax_wrapper = 'reference-options-limit-' . str_replace('_', '-', $field_name_option_limited);
++    $element_limited['#prefix'] = '<div id="' . $ajax_wrapper . '">';
+     $element_limited['#suffix'] = '</div>';
+ 
+     $match_columns = array();
+@@ -395,8 +391,6 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+       foreach ($elements as &$element) {
+         $element['#ajax'] = array(
+           'callback' => 'reference_option_limit_js',
+-          'wrapper' => $settings['ajax_wrapper'],
+-          'method' => 'replace',
+           'effect' => 'fade',
+           'event' => 'change',
+         );
+@@ -518,7 +512,8 @@ function reference_option_limit_field_attach_form($entity_type, $entity, &$form,
+     $type = str_replace('options_', '', $field_instance_option_limited['widget']['type']);
+     $multiple = $field_option_limited['cardinality'] > 1 || $field_option_limited['cardinality'] == FIELD_CARDINALITY_UNLIMITED;
+     $required = $element_limited[LANGUAGE_NONE]['#required'];
+-    $has_value = TRUE; // isset($items[0][$value_key]); ?????
++    // @todo: Find out why this was changed.
++    $has_value = FALSE; // isset($items[0][$value_key]); ?????
+     $properties = _options_properties($type, $multiple, $required, $has_value);
+ 
+     // Do the same work as _options_get_options(), since that invokes the field module hook.
+@@ -575,16 +570,20 @@ function reference_option_limit_get_match_columns($field) {
+  * Ajax callback for the updated term reference field.
+  */
+ function reference_option_limit_js($form, $form_state) {
+-  // We stored the path of the form element we need to return earlier on.
+-  $form_return_element = drupal_array_get_nested_value($form, $form_state['reference_option_limit_ajax_return']);
+-
++  $commands = array();
++  // We stored the paths of the form elements we need to replace earlier on.
++  foreach ($form_state['reference_option_limit_ajax_entries'] as $form_path) {
++    $field_name = $form_path[count($form_path) - 1];
++    $wrapper = '#reference-options-limit-' . str_replace('_', '-', $field_name);
++    $content = drupal_array_get_nested_value($form, $form_path);
++    $commands[] = ajax_command_replace($wrapper, drupal_render($content));
++    $commands[] = ajax_command_changed($wrapper);
++  }
++  // @todo: Should messages be attached to the triggering element instead?
+   if ($messages = theme('status_messages')) {
+-    $form_return_element['messages'] = array(
+-      '#markup' => '<div class="views-messages">' . $messages . '</div>',
+-    );
++    $commands[] = ajax_command_prepend('div#ajax-status-messages-wrapper', $messages);
+   }
+-
+-  return $form_return_element;
++  return array('#type' => 'ajax', '#commands' => $commands);
+ }
+ 
+ /**
+@@ -612,6 +611,48 @@ function reference_option_get_entity_option_limited_instances($entity_type, $fie
+ }
+ 
+ /**
++ * Recursively adds dependencies to the AJAX entries call stack.
++ *
++ * This function checks each limited field to see if the AJAX trigger is one
++ * of its matching fields, and recurses to find all dependencies. Duplicates
++ * are intentionally left in the entries stack here to assist in rebuilding
++ * the processing order later in the AJAX handler based on full dependencies.
++ *
++ * @todo: This might fail horribly with circular references? Don't do that.
++ */
++function _reference_option_limit_add_dependencies(&$ajax_entries, $form_state, $trigger = NULL) {
++  $match = FALSE;
++  // Check each limited field to see if the AJAX trigger is one of its
++  // matching fields.
++  foreach ($form_state['reference_option_limit'] as $field_name => $settings) {
++    // Try to find triggering element field name in the list of matching
++    // fields.
++    if (in_array($trigger, $settings['fields_match'])) {
++      // We only care about a match at the top level since the AJAX handler uses
++      // the return value of this function to decide whether to proceed further.
++      $match = TRUE;
++
++      // Store the path of the form element we're limiting for our AJAX
++      // callback to return. This saves the callback from repeating the work
++      // we've just done here.
++      // We are however too early in the form build process for the
++      // '#array_parents' property to have been set, so we have to build
++      // this ourselves: the path is the '#field_parents' with the field
++      // name appended.
++      $form_path = $settings['field_parents'];
++      $form_path[] = $field_name;
++      $ajax_entries[] = $form_path;
++
++      // Recursively build more dependencies.
++      $dependencies = array();
++      _reference_option_limit_add_dependencies($dependencies, $form_state, $field_name);
++      $ajax_entries = array_merge($ajax_entries, $dependencies);
++    }
++  }
++  return $match;
++}
++
++/**
+  * Implements hook_views_api().
+  */
+ function reference_option_limit_views_api() {

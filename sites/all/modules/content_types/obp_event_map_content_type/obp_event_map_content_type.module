@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OBP Event Map Content Type feature.
+ */
+
+include_once 'obp_event_map_content_type.features.inc';

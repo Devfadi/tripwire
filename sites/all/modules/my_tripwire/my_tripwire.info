@@ -1,0 +1,11 @@
+name = My TRIPwire
+core = 7.x
+package = My TRIPwire
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = my_tripwire
+features[views_view][] = my_tripwire_blocks
+features[views_view][] = my_tripwire_page
+features[views_view][] = my_tripwire_trending
+features_exclude[dependencies][ctools] = ctools

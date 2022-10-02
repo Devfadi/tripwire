@@ -1,0 +1,22 @@
+diff --git a/geofield.feeds.inc b/geofield.feeds.inc
+index a53a315..97d9d7a 100644
+--- a/geofield.feeds.inc
++++ b/geofield.feeds.inc
+@@ -142,6 +142,17 @@ function geofield_set_target_simple($source, $entity, $target, $values) {
+     $delta++;
+   }
+ 
++  // Compute all the geofield values for each field value.
++  foreach ($field[LANGUAGE_NONE] as $delta => $value) {
++    if (!empty($value['lat']) && !empty($value['lon'])) {
++      $field[LANGUAGE_NONE][$delta] = geofield_compute_values($value, GEOFIELD_INPUT_LAT_LON);
++    }
++    elseif (!empty($value['top']) && !empty($value['right']) && !empty($value['bottom']) && !empty($value['left'])) {
++      $value = array('geom' => $value);
++      $field[LANGUAGE_NONE][$delta] = geofield_compute_values($value, GEOFIELD_INPUT_BOUNDS);
++    }
++  }
++
+   $entity->$field_name = $field;
+ }
+ 

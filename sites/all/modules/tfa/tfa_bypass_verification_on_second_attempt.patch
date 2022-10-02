@@ -1,0 +1,18 @@
+diff --git a/tfa.module b/tfa.module
+index 5fe8909..6adc23c 100644
+--- a/tfa.module
++++ b/tfa.module
+@@ -241,8 +241,11 @@ function tfa_form_alter(&$form, &$form_state, $form_id) {
+         // tfa_login_form_redirect(). Other modules may alter the tfa_redirect
+         // options element as needed to set the destination after TFA.
+         $key = array_search('user_login_submit', $form['#submit']);
+-        $form['#submit'][$key] = 'tfa_login_submit';
+-        $form['#submit'][] = 'tfa_login_form_redirect';
++        global $user;
++        if ($key == 0 && !is_array($_SESSION['tfa']) && $user->uid == 0 ) {
++          $form['#submit'][$key] = 'tfa_login_submit';
++          $form['#submit'][] = 'tfa_login_form_redirect';
++        }
+       }
+       break;
+   }

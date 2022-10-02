@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Maillog views feature.
+ */
+
+include_once 'maillog_views.features.inc';

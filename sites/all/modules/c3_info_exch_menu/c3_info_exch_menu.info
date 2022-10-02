@@ -1,0 +1,10 @@
+name = C3 Information Exchange Menu
+core = 7.x
+package = Features
+dependencies[] = fe_block
+dependencies[] = features
+dependencies[] = menu
+dependencies[] = superfish
+features[fe_block_settings][] = superfish-2
+features[features_api][] = api:2
+features[menu_custom][] = menu-c3-info-exch-menu

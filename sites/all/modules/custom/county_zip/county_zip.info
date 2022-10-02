@@ -1,0 +1,7 @@
+name = County Zip
+description = BMAP Activity County Lookup from Zipcode
+package = Custom
+version = VERSION
+core = 7.x
+
+scripts[] = js/county_zip.js

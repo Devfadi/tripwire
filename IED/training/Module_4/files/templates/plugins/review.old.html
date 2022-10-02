@@ -1,0 +1,29 @@
+<div class="adv-review">
+    <h1>Actions Steps <span>{{percent}}% Complete</span></h1>
+    {{#each results}}
+    {{#ifMatch state "incomplete"}}
+    <h2>{{title}}</h2>
+    <div class="adv-review-state {{state}}">{{status}}</div>
+    {{else}}
+    <h2>{{title}}</h2>
+    <div class="adv-review-state {{state}}">{{status}}</div>
+    {{#if stem}}
+    <p><span class="underline bold">Prompt:</span> {{stem}}</p>
+    {{/if}}
+    {{#if selection}}
+    <p><span class="underline bold">Selection:</span> {{selection}}</p>
+    {{/if}}
+    {{#if selections}}
+    <p><span class="underline bold">Selections:</span></p>
+    <ul>
+    {{#each selections}}
+    <li class="{{#if isCorrect}}correct{{else}}incorrect{{/if}}">{{this.text}}</li>
+    {{/each}}        
+    </ul>
+    {{/if}}
+    {{#if feedback}}
+    <p><span class="underline bold">Feedback:</span> {{feedback}}</p>
+    {{/if}}
+    {{/ifMatch}}
+    {{/each}}
+</div>

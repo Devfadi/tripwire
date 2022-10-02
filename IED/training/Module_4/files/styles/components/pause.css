@@ -1,0 +1,18 @@
+#pause-icon {
+    position: absolute;
+    bottom: 130px;
+    left: 0;
+    background: url('../../assets/images/gui/pause-icon.png');
+    height: 200px;
+    width: 200px;
+    cursor: pointer;
+}
+#resources-icon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: url('../../assets/images/gui/resources-icon.png');
+    height: 200px;
+    width: 200px;
+    cursor: pointer;
+}

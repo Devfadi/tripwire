@@ -1,0 +1,65 @@
+.preload-display {
+    background-color: #000000;
+    color: #FFFFFF;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 999999;
+}
+.preload-display .warn-text {
+    color: #981A31;
+    font-weight: bold;
+}
+.preload-progress-bar {
+    background-color: #981A31;
+    height: 2px;
+    left: 0;
+    margin-top: -1px;
+    position: absolute;
+    top: 75%;
+    width: 0;
+}
+.preload-progress-text {
+    font-size: 20px;
+    height: 40px;
+    left: 0;
+    margin-top: -40px;
+    position: absolute;
+    text-align: center;
+    text-overflow: ellipsis;
+    top: 75%;
+    width: 100%;
+}
+.preload-logo {
+    position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -64px;
+	margin-top: -7px;
+	width: 128px;
+	height: 15px;
+}
+.preload-title {
+    left: 0;
+    top: 25%;
+    width: 100%;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    font-size: 45px;
+    color: #981A31;
+    font-weight: bold;
+}
+.preload-progress-note {
+    font-size: 20px;
+    height: 100px;
+    left: 0;
+    margin-top: 40px;
+    position: absolute;
+    text-align: center;
+    text-overflow: ellipsis;
+    top: 75%;
+    width: 100%;
+}

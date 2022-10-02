@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Extremist Threat Report dashboard view feature.
+ */
+
+include_once 'extremist_threat_report_dashboard_view.features.inc';

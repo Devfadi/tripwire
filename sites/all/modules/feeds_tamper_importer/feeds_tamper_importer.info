@@ -1,0 +1,12 @@
+name = Feeds Tamper Importer
+description = Implements tamper plugin import
+package = Feeds
+core = 7.x
+dependencies[] = feeds_tamper
+
+; Information added by Drupal.org packaging script on 2018-02-21
+version = "7.x-1.1"
+core = "7.x"
+project = "feeds_tamper_importer"
+datestamp = "1519240984"
+

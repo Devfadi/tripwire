@@ -1,0 +1,129 @@
+<?php
+
+
+  //fetching data from Tw Status History table
+  $query = db_query(" SELECT sid,
+  name,
+  status,
+  state,
+  roles,
+  fed_region,
+  FROM_UNIXTIME(`timestamp`) DateTime,
+  drupal_status FROM tw_status_history ORDER BY sid DESC ");
+
+  $result = $query->fetchAll();
+
+ //get the private folder path
+  $private_directory = variable_get('file_private_path');
+
+ //Save csv file in private folder
+  $file = fopen($private_directory . '/'.'tw_status_history ' .date('Y-m-d').'.csv', 'w');
+                    fputcsv($file, array('Sno','sid', 'name','status', 'state', 'roles', 'fed_region','DateTime' ,'drupal_status'));
+                    $counter = 1;
+                    foreach($result as $logs){
+
+                      $temp_array = [
+                        $counter,
+                        $logs->sid,
+                        $logs->name,
+                        $logs->status,
+                        $logs->state,
+                        $logs->roles,
+                        $logs->fed_region,
+                        $logs->DateTime,
+                        $logs->drupal_status,
+                      ];
+                      fputcsv($file, $temp_array);
+                      $counter++;
+                    }
+                    fclose($file);
+
+
+ //fetching data from Tw Admin History table
+  $query_one = db_query(" SELECT eid,
+  uid,
+  session_id,
+  action,
+  FROM_UNIXTIME(`timestamp`) DateTime,
+  name,
+  page_label,
+  url,
+  role,
+  error_message FROM tw_admin_history ORDER BY eid DESC LIMIT 20000");
+
+  $result_one = $query_one->fetchAll();
+
+  //get the private folder path
+  $private_directory = variable_get('file_private_path');
+
+  //Save csv file in private folder
+  $file = fopen($private_directory . '/'.'tw_admin_history ' .date('Y-m-d').'.csv', 'w');
+                    fputcsv($file, array('Sno','eid', 'uid','session_id', 'action','DateTime', 'name', 'page_label', 'url', 'role', 'error_message'));
+                    $counter = 1;
+                    foreach($result_one as $logs){
+
+                      $temp_array = [
+                        $counter,
+                        $logs->eid,
+                        $logs->uid,
+                        $logs->session_id,
+                        $logs->action,
+                        $logs->DateTime,
+                        $logs->name,
+                        $logs->page_label,
+                        $logs->url,
+                        $logs->role,
+                        $logs->error_message,
+                      ];
+                      fputcsv($file, $temp_array);
+                      $counter++;
+                    }
+
+                    fclose($file);
+
+ //fetching data from Tw User History table
+  $query_two = db_query(" SELECT hid,
+  uid,
+  type,
+  log,
+  FROM_UNIXTIME(`timestamp`) DateTime,
+  name,
+  account_state,
+  current_account_status,
+  old_account_status,
+  account_type,
+  author FROM tw_user_history ORDER BY hid DESC  LIMIT 20000");
+
+
+  $result_two = $query_two->fetchAll();
+
+  //get the private folder path
+  $private_directory = variable_get('file_private_path');
+
+  //Save csv file in private folder
+  $file = fopen($private_directory . '/'.'tw_user_history ' .date('Y-m-d').'.csv', 'w');
+                    fputcsv($file, array('Sno','hid', 'uid','type', 'log', 'DateTime','name', 'account_state', 'current_account_status', 'old_account_status', 'account_type','author'));
+                    $counter = 1;
+                    foreach($result_two as $logs){
+
+                      $temp_array = [
+                        $counter,
+                        $logs->hid,
+                        $logs->uid,
+                        $logs->type,
+                        $logs->log,
+                        $logs->DateTime,
+                        $logs->name,
+                        $logs->account_state,
+                        $logs->current_account_status,
+                        $logs->old_account_status,
+                        $logs->account_type,
+                        $logs->author,
+                      ];
+                      fputcsv($file, $temp_array);
+                      $counter++;
+                    }
+
+                    fclose($file);
+
+

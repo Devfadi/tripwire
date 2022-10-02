@@ -1,0 +1,3 @@
+name = TripWire Incident Alert
+description = Admin interface for incident alert block
+core = 7.x

@@ -1,0 +1,39 @@
+.adv-bubble {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+.adv-bubble-content {
+    background: none repeat scroll 0 0 #FEFD93;
+    border: 3px solid #DACB01;
+    border-radius: 5px 5px 5px 5px;
+    color: #000000;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    line-height: 1.6em;
+    padding: 40px 40px 30px;
+}
+.adv-bubble-content p {
+    margin-bottom: 10px;
+}
+.adv-bubble-arrow {
+    background: none repeat scroll 0 0 transparent;
+    border-color: transparent transparent transparent #DACB01;
+    border-style: solid;
+    border-width: 20px;
+    height: 1px;
+    position: absolute;
+    width: 1px;
+}
+.adv-bubble {
+    border-radius: 5px 5px 5px 5px;
+    font-size: 18px;
+}
+.adv-bubble ol {
+    list-style: decimal outside none;
+    padding-left: 2em;
+}
+.adv-bubble ol {
+    list-style: circle outside none;
+    padding-left: 2em;
+}

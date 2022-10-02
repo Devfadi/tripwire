@@ -1,0 +1,10 @@
+name = Environment Variables
+core = 7.x
+package = Features
+dependencies[] = ctools
+dependencies[] = environment_indicator
+features[ctools][] = environment_indicator:default_environment_indicator_environments:1
+features[environment_indicator_environment][] = dev
+features[environment_indicator_environment][] = local
+features[environment_indicator_environment][] = prod
+features[features_api][] = api:2

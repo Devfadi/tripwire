@@ -1,0 +1,278 @@
+.fuou {
+	position: absolute;
+	left: 50%;
+	font-size: 16px;
+	font-weight: bold;
+	width: 200px;
+	margin-left: -100px;
+	color: #000000;
+	text-align: center;
+}
+.fuou-top { top: 0; }
+.fuou-bottom { bottom: 0; }
+
+.menu-button {
+    position: absolute;
+    top: 50%;
+    left: 0;
+}
+.menu-box {
+    position: absolute;
+    top: 240px;
+    bottom: 25px;
+    left: 0;
+    right: 25px;
+}
+.menu-wrap {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+.menu-tabs {
+	font-size: 37px;
+	height: 15px;
+	position: absolute;
+	right: 0;
+	text-align: center;
+	top: 18px;
+	width: 100%;
+	background: #27577d;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+}
+
+.menu-content {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: #27577d;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+	border-bottom-right-radius: 125px;
+}
+
+.menu-footer {
+	display:none;
+/*    background: url("../../assets/images/gui/Gradient.png") no-repeat scroll right bottom / 1075px 41px #27577d;*/
+    bottom: 0;
+    height: 168px;
+    left: 0;
+    position: absolute;
+    right: 180px;
+}
+.menu-corner {
+	display:none;
+/*    background: url('../../assets/images/gui/menu-bottom-corner.png');*/
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 180px;
+    height: 168px;
+}
+.content-box {
+    bottom: 62px;
+    font-size: 16px;
+    left: 20px;
+    overflow: hidden;
+    padding: 0.5em;
+    position: absolute;
+    right: 50px;
+    top: 20px;
+}
+.menu-textbox {
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    position: absolute;
+    right: 0;
+    padding: .5em;
+    top: 0;
+    font-size: 16px;
+}
+.menu-textbox.fit-text {
+    right: 612px;
+}
+.menu-buttons {
+    background: none repeat scroll 0 0 #27577d;
+    bottom: 0;
+    left: 0;
+    padding-left: 10px;
+    position: absolute;
+}
+.menu-tabs button {
+    border: 0 none;
+    float: left;
+    font-size: 46px;
+    font-weight: bold;
+    height: 33px;
+    letter-spacing: -4px;
+    line-height: 0;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    text-align: center;
+    text-transform: uppercase;
+    width: 306px;
+}
+.menu-tabs button.left {
+    background: url('../../assets/images/gui/menu-tab.png');
+    color: #27577d;
+}
+.menu-tabs button.right {
+    background: url('../../assets/images/gui/menu-tab.png') no-repeat scroll -306px 0 transparent;
+    color: #27577d;
+}
+.menu-tabs button.left.state-active {
+    background: url('../../assets/images/gui/menu-tab-blue.png');
+    color: #ffffff;
+}
+.menu-tabs button.right.state-active {
+    background: url('../../assets/images/gui/menu-tab-blue.png') no-repeat scroll -306px 0 transparent;
+    color: #ffffff;
+}
+
+.menu-buttons button {
+    font-size: 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.menu-selections button {
+/*
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+    border: 1px solid #ffffff;
+    border-radius: 10px;
+    color: #ffffff;
+    float: left;
+*/
+    font-size: 46px;
+    font-weight: bold;
+/*
+    line-height: 40px;
+    margin: 0 20px 20px 0;
+    padding: 5px;
+    text-transform: uppercase;
+*/
+    width: 375px;
+}
+
+.menu-selections button:hover {
+
+}
+.menu-selections button:disabled {
+    color: #888888;
+}
+.menu-selections button.complete {
+    color: green;
+}
+
+.image-right {
+    position: absolute;
+    right: 0;
+}
+.square-fit-height {
+    height: 100%;
+}
+.image-box {
+    background: none repeat scroll 0 0 #fff;
+    bottom: 0;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+}
+.image-box .image {
+    height: 100%;
+    left: 0;
+    position: relative;
+    width: 100%;
+}
+.image-box .image img {
+    height: 100%;
+    position: absolute;
+    right: 0;
+    width: auto;
+}
+.image-box .corner-bl {
+    background: url('../../assets/images/gui/corner-bottom-left.png');
+	background-size: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 100px
+}
+.image-box .corner-br {
+    background: url('../../assets/images/gui/corner-bottom-right.png');
+	background-size: 100%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+}
+.image-box .corner-tr {
+    background: url('../../assets/images/gui/corner-top-right.png');
+	background-size: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+}
+.version {
+    bottom: 9px;
+	color: #000;
+	font-size: 22px;
+	position: absolute;
+	left: 358px;
+	text-align: left;
+}
+#viewport .version a {
+    text-decoration: none;
+	color: #000000;
+	font-weight: bold;
+}
+
+
+#mode-view {
+    background: none repeat scroll 0 0 #27577d;
+    border: 2px solid #fff;
+    font-size: 20px;
+    font-weight: bold;
+    left: 0;
+    margin: 5px;
+    padding: 10px;
+    position: absolute;
+    top: 0;
+}
+
+#game-pause-screen {
+    background: none repeat scroll 0 0 #000;
+}
+#game-pause-screen .box {
+    background: none repeat scroll 0 0 #27577d;
+    border-radius: 10px;
+    height: 200px;
+    left: 50%;
+    margin-left: -160px;
+    margin-top: -110px;
+    padding: 10px;
+    position: absolute;
+    top: 50%;
+    width: 300px;
+}
+#game-pause-screen .title {
+    text-align: center;
+    width: 100%;
+    font-size: 40px;
+}
+#game-pause-screen .menu-buttons {
+  width: 151px;
+  padding: 0;
+  background: transparent;
+  bottom: 67px;
+  left: 85px;
+}

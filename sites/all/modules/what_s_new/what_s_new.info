@@ -1,0 +1,14 @@
+name = What's New
+description = All Views related to What's New content
+core = 7.x
+package = Features
+dependencies[] = better_exposed_filters
+dependencies[] = ds
+dependencies[] = views_slideshow
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = what_s_new_list_view
+features[views_view][] = what_s_new_list_view_pre_auth
+features[views_view][] = what_s_new_vertical_scroll
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][views] = views

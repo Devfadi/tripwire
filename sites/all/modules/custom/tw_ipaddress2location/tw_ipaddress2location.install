@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Tw IP Address to location module.
+ *
+ * @author Uttam
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function tw_ipaddress2location_field_schema($field) {
+  return array(
+    'columns' => array(
+      'value' => array(
+        'type' => 'varchar',
+        'length' => 11,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'value' => array('value'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_schema().
+ */
+function tw_ipaddress2location_schema() {
+  $schema['tw_ipaddress'] = array(
+    'description' => 'stored user location based on ip address.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The primary key.',
+      ),
+     'country' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Country name of the location.',
+      ),
+      'country_code' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Country code of the location.',
+      ),
+      'region' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'region of the location.',
+      ),
+      'region_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'region name of the location.',
+      ),
+      'city' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'city of the location.',
+      ),
+      'zip' => array(
+         'type' => 'int',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'zip of the location.',
+      ),
+      'user_role' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'define the role of user either user is visitor or registered.',
+      ),
+      'timezone' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'timezone of the location.',
+      ),
+      'ip' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'ip of the location.',
+      ),
+      'date_time' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+         'description' => 'current date.',
+      ),
+
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+

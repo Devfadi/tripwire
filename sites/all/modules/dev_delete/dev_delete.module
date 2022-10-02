@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Dev Delete feature.
+ */
+
+include_once 'dev_delete.features.inc';

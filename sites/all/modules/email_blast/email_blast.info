@@ -1,0 +1,9 @@
+name = Email Blast
+core = 7.x
+package = Features
+dependencies[] = views
+dependencies[] = views_data_export
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = email_blast
+features_exclude[dependencies][ctools] = ctools

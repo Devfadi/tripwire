@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Testimonial block feature.
+ */
+
+include_once 'testimonial_block.features.inc';

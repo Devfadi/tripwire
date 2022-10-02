@@ -1,0 +1,12 @@
+name = User Status
+description = Includes taxonomy fields for user entities
+core = 7.x
+package = Features
+dependencies[] = features
+dependencies[] = options
+dependencies[] = taxonomy
+features[features_api][] = api:2
+features[field_base][] = field_user_status
+features[field_instance][] = user-user-field_user_status
+features[taxonomy][] = user_group
+features[taxonomy][] = user_status

@@ -1,0 +1,9 @@
+name = Tw IP Address to location
+description = Custom module that display user loaction based on client ip address
+package = Custom
+version = VERSION
+core = 7.x
+
+dependencies[] = view_custom_table
+
+

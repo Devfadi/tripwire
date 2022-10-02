@@ -1,0 +1,13 @@
+diff --git a/mappers/file.inc b/mappers/file.inc
+index aa967b9..b07ad53 100644
+--- a/mappers/file.inc
++++ b/mappers/file.inc
+@@ -15,7 +15,7 @@ function file_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_nam
+   foreach (field_info_instances($entity_type, $bundle_name) as $name => $instance) {
+     $info = field_info_field($name);
+ 
+-    if (in_array($info['type'], array('file', 'image'))) {
++    if (in_array($info['type'], array('file', 'image', 'video'))) {
+       $targets[$name . ':uri'] = array(
+         'name' => t('@label: URI', array('@label' => $instance['label'])),
+         'callback' => 'file_feeds_set_target',

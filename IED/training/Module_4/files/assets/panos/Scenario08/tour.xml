@@ -1,0 +1,87 @@
+<krpano version="1.16" title="Virtual Tour" onstart="startup();">
+
+	<include url="%HTMLPATH%/files/krpano/skin/vtourskin.xml" />
+	
+	<view
+        hlookat   = "198.8053122134438"
+        vlookat   = "0"    
+        fov       = "55"
+        fovmin    = "55"
+        fovmax    = "55"
+        limitview = "range"
+		/>
+		
+	<events
+        onxmlcomplete     = "js(aden.pano.onPanoXMLComplete();)"
+        onpreviewcomplete = "js(aden.pano.onPanoPreviewComplete();)"
+        onloadcomplete    = "js(aden.pano.onPanoLoadComplete();)"
+        onnewpano         = "js(aden.pano.onPanoLoadStart());"
+        onremovepano      = "js(aden.pano.onPanoRemove();)"
+        onloaderror       = "js(aden.pano.onPanoLoadError();)"
+        />	
+	<!-- set skin settings: bingmaps? gyro? thumbnail controlling? tooltips? -->
+	<skin_settings 
+        bingmaps                = "false"
+        bingmaps_key            = ""
+        bingmaps_zoombuttons    = "false"
+        gyro                    = "true"
+        thumbs_width            = "120" thumbs_height="80" thumbs_padding="10" thumbs_crop="0|40|240|160"
+        thumbs_opened           = "false"
+        thumbs_text             = "false"
+        thumbs_dragging         = "true"
+        thumbs_onhoverscrolling = "false"
+        thumbs_scrollbuttons    = "false"
+        thumbs_scrollindicator  = "false"
+        tooltips_thumbs         = "false"
+        tooltips_hotspots       = "false"
+        tooltips_mapspots       = "false"
+        controlbar_offset       = "20"
+        />
+
+	<!-- set optional skin logo url -->
+	<layer name="skin_logo" url="" scale="0.25" opened_onclick="openurl('...',_blank);" />
+	
+	<action name="startup">
+		if(startscene === null, copy(startscene,scene[0].name));
+		loadscene(get(startscene), null, MERGE);
+		set(control.mousetype,moveto);
+        set(cursors.url,%HTMLPATH%/files/assets/images/cursors/qtvr-cursors.png);
+        set(cursors.type,8way);
+        set(cursors.move,       0|0|16|16);
+        set(cursors.drag,      16|0|16|16);
+        set(cursors.arrow_u,   32|0|16|16);
+        set(cursors.arrow_d,   48|0|16|16);
+        set(cursors.arrow_l,   64|0|16|16);
+        set(cursors.arrow_r,   80|0|16|16);
+        set(cursors.arrow_lu,  96|0|16|16);
+        set(cursors.arrow_ru, 112|0|16|16);
+        set(cursors.arrow_rd, 128|0|16|16);
+        set(cursors.arrow_ld, 144|0|16|16);
+        js(aden.pano.onPanoStart());
+	</action>
+	
+	<scene name="Bathrooms" title="Bathrooms" onstart="" thumburl="panos/Bathrooms.tiles/thumb.jpg" lat="" lng="" heading="">
+		<preview url="panos/Bathrooms.tiles/preview.jpg" />
+		<image>
+			<cube url="panos/Bathrooms.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="panos/Bathrooms.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+		<!-- place your scene hotspots here -->
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="-24.889" atv="-0.107" linkedscene="road" />
+	</scene>
+
+	<scene name="Road" title="Road" onstart="" thumburl="panos/Road.tiles/thumb.jpg" lat="" lng="" heading="">
+		<preview url="panos/Road.tiles/preview.jpg" />
+		<image>
+			<cube url="panos/Road.tiles/pano_%s.jpg" />
+			<mobile>
+				<cube url="panos/Road.tiles/mobile_%s.jpg" />
+			</mobile>
+		</image>
+		<!-- place your scene hotspots here -->
+		<hotspot name="spot1" style="skin_hotspotstyle" ath="151.549" atv="-0.546" linkedscene="bathrooms" />
+	</scene>
+	
+</krpano>

@@ -1,0 +1,121 @@
+<krpano onstart="action(start)" basedir="%HTMLPATH%">
+    <view
+        hlookat   = "198.8053122134438"
+        vlookat   = "0"    
+        fov       = "55"
+        limitview = "range"
+    />
+    
+    <events
+        onxmlcomplete     = "js(aden.pano.onPanoXMLComplete();)"
+        onpreviewcomplete = "js(aden.pano.onPanoPreviewComplete();)"
+        onloadcomplete    = "js(aden.pano.onPanoLoadComplete();)"
+        onnewpano         = "js(aden.pano.onPanoLoadStart());"
+        onremovepano      = "js(aden.pano.onPanoRemove();)"
+        onloaderror       = "js(aden.pano.onPanoLoadError();)"
+    />
+    <control 
+        mousetype       = "moveto"
+        touchtype       = "drag2d"
+        zoomtocursor    = "false"
+        zoomoutcursor   = "true"
+        mouseaccelerate = "0.8"
+        mousespeed      = "10.0"
+        mousefriction   = "0.6"
+        mousefovchange  = "1.0"
+        fovspeed        = "3.0"
+        fovfriction     = "0.9"
+        touchfriction   = "0.87"
+        />
+    <action name="start">
+        set(cursors.url,%HTMLPATH%/files/assets/images/cursors/qtvr-cursors.png);
+        set(cursors.type,8way);
+        set(cursors.move,       0|0|16|16);
+        set(cursors.drag,      16|0|16|16);
+        set(cursors.arrow_u,   32|0|16|16);
+        set(cursors.arrow_d,   48|0|16|16);
+        set(cursors.arrow_l,   64|0|16|16);
+        set(cursors.arrow_r,   80|0|16|16);
+        set(cursors.arrow_lu,  96|0|16|16);
+        set(cursors.arrow_ru, 112|0|16|16);
+        set(cursors.arrow_rd, 128|0|16|16);
+        set(cursors.arrow_ld, 144|0|16|16);
+        js(aden.pano.onPanoStart());
+    </action>
+    
+    <action name="preloadimage">
+        <!-- 1. parameter = internal ID,  2. parameter = url -->
+        addplugin(pre_%1);
+        set(plugin[pre_%1].visible, false);
+        set(plugin[pre_%1].onloaded, trace(preload %2 done);removeplugin(pre_%1);js(handleImageLoad()) );
+        set(plugin[pre_%1].url, %2);
+        js(console.log(starting preloading %2));
+    </action>
+    
+    <style 
+        name    = "skin_hotspotstyle"
+        url     = "%HTMLPATH%/files/assets/images/hotspots/vtourskin_hotspot.png"
+        scale   = "1.0" 
+        edge    = "top" 
+        oy      = "0"
+        zorder  = "150"
+        onclick = "looktohotspot(get(name),55);js(aden.pano.load(get(linkedscene))););"
+    />
+    
+    <!-- Start Scene --> 
+    <scene name     = "start"
+           title    = "start"
+           onstart  = "js(aden.pano.onSceneStart)"
+           thumburl = "%HTMLPATH%/files/assets/panos/scenario01/van.tiles/thumb.jpg" 
+           lat      = ""
+           lng      = ""
+           heading  = ""
+    >
+        <preview url="%HTMLPATH%/files/assets/panos/scenario01/van.tiles/preview.jpg" />
+        <image>
+            <cube url="%HTMLPATH%/files/assets/panos/scenario01/van.tiles/pano_%s.jpg" />
+            <mobile>
+                <cube url="%HTMLPATH%/files/assets/panos/scenario01/van.tiles/mobile_%s.jpg" />
+            </mobile>
+        </image>
+        <hotspot name="spot1" style="skin_hotspotstyle" ath="-160.611" atv="2.442" linkedscene="van" />
+    </scene>
+    
+    <!-- Looking into van --> 
+    <scene name     = "van"
+           title    = "van"
+           onstart  = "js(aden.pano.onSceneStart)"
+           thumburl = "%HTMLPATH%/files/assets/panos/scenario01/VanBack.tiles/thumb.jpg" 
+           lat      = ""
+           lng      = ""
+           heading  = ""
+    >
+        <preview url="%HTMLPATH%/files/assets/panos/scenario01/VanBack.tiles/preview.jpg" />
+        <image>
+            <cube url="%HTMLPATH%/files/assets/panos/scenario01/VanBack.tiles/pano_%s.jpg" />
+            <mobile>
+                <cube url="%HTMLPATH%/files/assets/panos/scenario01/VanBack.tiles/mobile_%s.jpg" />
+            </mobile>
+        </image>
+    </scene>
+    
+    <!-- Cover behind car door -->
+	<scene name     = "car"
+           title    = "car"
+           onstart  = "js(aden.pano.onSceneStart)"
+           thumburl = "%HTMLPATH%/files/assets/panos/scenario01/OpenSquadCar.tiles/thumb.jpg" 
+           lat      = ""
+           lng      = ""
+           heading  = ""
+    >
+        <preview url="%HTMLPATH%/files/assets/panos/scenario01/OpenSquadCar.tiles/preview.jpg" />
+        <image>
+            <cube url="%HTMLPATH%/files/assets/panos/scenario01/OpenSquadCar.tiles/pano_%s.jpg" />
+            <mobile>
+                <cube url="%HTMLPATH%/files/assets/panos/scenario01/OpenSquadCar.tiles/mobile_%s.jpg" />
+            </mobile>
+        </image>
+    </scene>
+	
+    <preview type="grid(cube,16,16,512,0x00FF00,0x000000,0x999999);" details="16" />
+</krpano>

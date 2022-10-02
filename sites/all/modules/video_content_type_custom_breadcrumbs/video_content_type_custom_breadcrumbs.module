@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Video Content Type Custom Breadcrumbs feature.
+ */
+
+include_once 'video_content_type_custom_breadcrumbs.features.inc';

@@ -1,0 +1,12 @@
+name = Voting API Entity Type
+description = Provides Entity API integration for Voting API data.
+core = 7.x
+dependencies[] = entity
+dependencies[] = votingapi
+
+; Information added by Drupal.org packaging script on 2016-10-05
+version = "7.x-1.0"
+core = "7.x"
+project = "votingapi_entity"
+datestamp = "1475650151"
+

@@ -1,0 +1,460 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+>
+<html lang="en">
+<!-- <html> -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+<title>IED Awareness & Safety Procedures Training Course</title>
+<h1></h1>
+<link href="/IED/resources/css/loginpopup.css" rel="stylesheet" type="text/css" media="all" />  
+
+<script data-main="files/scripts/main" src="/IED/require_security.js"></script>
+<script type="text/javascript">if (top != self) top.location=location</script>
+<script type="text/javascript">
+		var clicks = 0;
+		var module1 = false; 
+		var module2 = false;
+		var module3 = false;
+		 
+		var completed = false;
+		
+		var completedModule1 = false;
+		var completedModule2 = false;
+		var completedModule3 = false;
+		
+		function moduleClicked(module) 
+		{
+						
+			//alert("module==>" + module);
+			
+			if(module == "module1")
+			{
+				if(module1 == false)
+				{
+					//alert('this is module 1');
+					module1 = true;
+				}
+				
+			}
+			else if(module == "module2")
+			{
+				if(module2 == false)
+				{
+					//alert('this is module 2');
+					module2 = true;
+				}
+				
+			}
+			else if(module == "module3")
+			{
+				if(module3 == false)
+				{
+					//alert('this is module 3');
+					module3 = true;
+				}
+				
+			}
+							
+			//This will disable the 3 icons image link after the user completed all modules.
+			if(completed == true)
+			{
+				//alert("You have completed all three modules, please proceed to the survey");
+				
+				//Disable Module One href link
+				document.getElementById('Link1').disabled=true;
+				document.getElementById('Link1').removeAttribute('href');    
+				document.getElementById('Link1').style.textDecoration = 'none';
+				document.getElementById('Link1').style.cursor = 'default';
+				//Disable Module Two href link
+				document.getElementById('Link2').disabled=true;
+				document.getElementById('Link2').removeAttribute('href');    
+				document.getElementById('Link2').style.textDecoration = 'none';
+				document.getElementById('Link2').style.cursor = 'default';
+				//Disable Module Three href link	
+				document.getElementById('Link3').disabled=true;
+				document.getElementById('Link3').removeAttribute('href');    
+				document.getElementById('Link3').style.textDecoration = 'none';
+				document.getElementById('Link3').style.cursor = 'default';
+			
+								 
+			}
+			
+			else if((module1 == true) && (module2 == false) && (module3 == false))
+			{
+				//alert("After completing this module 1, please proceed to complete module 2 and module 3");
+				document.getElementById('Link1').disabled=true;
+				document.getElementById('module1Image').src = '/IED/resources/images/popupModule1_complete.jpg';
+					
+				 
+			}
+			else if((module1 == false) && (module2 == true) && (module3 == false))
+			{
+				//alert("After completing this module 2, please proceed to complete module 1 and module 3");
+				document.getElementById('Link2').disabled=true;
+				document.getElementById('module2Image').src = '/IED/resources/images/popupModule2_complete.jpg';
+				 
+			}
+			else if((module1 == false) && (module2 == false) && (module3 == true))
+			{
+				//alert("After completing this module 3, please proceed to complete module 1 and module 2");
+				document.getElementById('Link3').disabled=true;
+				document.getElementById('module3Image').src = '/IED/resources/images/popupModule3_complete.jpg';
+				 
+			}
+			else if((module1 == true) && (module2 == true) && (module3 == false))
+			{
+				//alert("After completing module 1 and module 2, please proceed to complete module 3");
+				document.getElementById('Link1').disabled=true;
+				document.getElementById('module1Image').src = '/IED/resources/images/popupModule1_complete.jpg';
+				document.getElementById('Link2').disabled=true;
+				document.getElementById('module2Image').src = '/IED/resources/images/popupModule2_complete.jpg';
+				 
+			}
+			else if((module1 == true) && (module2 == false) && (module3 == true))
+			{
+				//alert("After completing module 1 and module 3, please proceed to complete module 2");
+				document.getElementById('Link1').disabled=true;
+				document.getElementById('module1Image').src = '/IED/resources/images/popupModule1_complete.jpg';
+				document.getElementById('Link3').disabled=true;
+				document.getElementById('module3Image').src = '/IED/resources/images/popupModule3_complete.jpg';
+				 
+			}
+			else if((module1 == false) && (module2 == true) && (module3 == true))
+			{
+				//alert("After completing module 2 and module 3, please proceed to complete module 1");
+				document.getElementById('Link2').disabled=true;
+				document.getElementById('module2Image').src = '/IED/resources/images/popupModule2_complete.jpg';
+				document.getElementById('Link3').disabled=true;
+				document.getElementById('module3Image').src = '/IED/resources/images/popupModule3_complete.jpg';
+				 
+			}
+			else if((module1 == true) && (module2 == true) && (module3 == true))
+			{
+				//alert("After completing this third required module, please proceed to complete the survey");
+				document.getElementById('Link1').disabled=true;
+				document.getElementById('module1Image').src = '/IED/resources/images/popupModule1_complete.jpg';
+				document.getElementById('Link2').disabled=true;
+				document.getElementById('module2Image').src = '/IED/resources/images/popupModule2_complete.jpg';
+				document.getElementById('Link3').disabled=true;
+				document.getElementById('module3Image').src = '/IED/resources/images/popupModule3_complete.jpg';
+				
+				//Comment this out to allow the image video link to run again
+				//completed = true;
+								
+			}
+			
+								
+		}
+		
+		function trackSurvey() {
+		
+		}			 
+		
+    </script>
+
+
+
+<style type="text/css">
+.title {
+	color:#ee0000;
+	font-size:16px;
+	font-weight:bold; 
+	font-family:Arial,Helvetica,sans-serif;
+}
+.title2 {
+	 
+	font-size:16px;
+	font-weight:bold; 
+	font-family:Arial,Helvetica,sans-serif;
+}
+p.a1 {
+	font-size:12px;
+	font-family:Arial,Helvetica,sans-serif;
+}
+font.a1 {
+	font-size:12px;
+	font-family:Arial,Helvetica,sans-serif;
+}
+
+ul.a {
+padding-right: 5px; 
+padding-left: 5px;
+font-family:Arial,Helvetica,sans-serif;
+font-size:12px;
+}
+.tableBorderA {
+	width: 100%;
+	background-color: #FFFFFF;
+	padding: 2px 5px 5px 5px;
+	font:Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	padding-left: 10px;
+	}
+textarea {  overflow: auto; }
+
+.errorMessage {
+	color:#F00;   /* red */
+	/*   color:#FFF; */ /* white */
+	/* color:#999;  */	/* gray */
+	
+}
+.footer1 a:hover {
+	color:#FFF;  /*white*/
+	/* color:#F00; */	/*red*/
+	/* color:#999; */  	/* gray */
+	
+}
+#bodyboxcenter {
+	width:335px;
+	height:125px;
+	margin-left:auto;
+	margin-right:auto;
+	/*float:left;*/
+}
+#bodyboxcenter_a {
+	width:600px;
+	height:125px;
+	margin-left:480px;
+	font:Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	 
+	 
+}
+#bodyboxleft {
+width:335px;
+height:125px;
+margin-left:auto; 
+/* margin-right:auto; */
+/* float:left; */
+}
+
+#bodyboxright {
+width:335px;
+height:125px;
+margin-left:auto; 
+/* margin-right:auto; */
+/* float:left; */
+font:Arial, Helvetica, sans-serif;
+font-size: 12px;
+}
+ 
+.trainingcontainer_a {
+	width:1195px;
+	height:650px;
+	margin:0;
+	padding:0px;
+	background-color: #fff;
+	/* border: 3px solid #404040; */
+}
+#columnwrap1 {
+	width:1095px;
+	height:153px;
+	margin-left:50px;
+	margin-right:auto;
+	margin-top:10px;
+	
+}
+#columnwrap2 {
+	
+	margin-left:190px;
+	margin-right:auto;
+	margin-top:10px;
+	
+	/* border: 3px solid #404040; */
+	
+}
+.columntitle {
+	color:#ee0000; 
+	font-size:16px;
+	font-weight:bold; 
+	font-family:Arial,Helvetica,sans-serif;
+		 
+	margin-left:auto;
+	margin-bottom:10px;
+	 
+} 
+
+.columnbox9a {
+	float:left;
+	width:335px;
+	height:152px;
+	margin-right:25px;
+	 
+}
+
+
+.trainingbox1a {
+	float:left;
+	width:300px;
+	height:252px;
+	/*margin-right:25px;*/
+	/* background-color:#CCC; */ /*gray*/
+	background-color:#FFF;	/*white*/
+}
+.trainingbox1b {
+	float:center;
+	width:900px;
+	height:252px;
+	/*margin-right:25px;*/
+	/* background-color:#CCC; */ /*gray*/
+	background-color:#FFF;	/*white*/
+}
+.trainingboxRight {
+	float:left;
+	width:300px;
+	height:252px;
+	background-color:#FFF;
+	 
+	margin-bottom:15px; 
+}
+.trainingbar_a {
+	width:335px;
+	height:25px;
+	background-color:#005288;
+	font-family:Verdana, Geneva, sans-serif;
+	color:#FFF;
+	padding-top:2px;
+	font-size:10px;
+	font-weight:bold;
+	line-height:2.17em;
+	text-align:center;
+}
+.trainingbar_top1 {
+	width:235px;
+	height:25px;
+	/* background-color:#005288; */
+	font-family:Verdana, Geneva, sans-serif;
+	/* color:#FFF;  */ 
+	padding-top:2px;
+	font-size:10px;
+	font-weight:bold;
+	line-height:4.17em;
+	text-align:center;
+}
+.trainingbar_top2 {
+	width:235px;
+	height:25px;
+	/* background-color:#005288; */
+	font-family:Verdana, Geneva, sans-serif;
+	/* color:#FFF;  */ 
+	padding-top:2px;
+	font-size:10px;
+	font-weight:bold;
+	line-height:2.17em;
+	text-align:center;
+}
+.trainingbody_a {
+	width:335px;
+	height:125px;
+}
+.trainingbody_b {
+	width:835px;
+	height:125px;
+}
+
+</style>
+ </head>
+ 
+<body> 
+<!-- <body>  -->
+
+
+
+<div class="trainingcontainer_a">
+ 
+<div id="columnwrap1">
+	<br/>
+	<div class="title">IED Awareness & Safety Procedures Training Course
+	</div>
+		<p>The IED Awareness & Safety Procedures Training Course will help educate
+		users on prevention and response techniques for actual and threatened IED incidents.</p>
+		
+		<p>Total estimated time of completion for all three modules: 45 minutes</p></br>
+
+</div>
+<div id="columnwrap2">
+ 
+<div class="trainingbox1a">
+	<div class="trainingbar_top1">Module 1:</div>
+	<div class="trainingbar_top2">Importance of Learning about IEDs</div>  
+	<div class="trainingbody_a">
+		<div id="bodyboxcenter"><a id="Link1" href="/IED/resources/jsp/toModule1.html" target="_blank" onClick="moduleClicked('module1')"><img id="module1Image" src="/IED/resources/images/popupModule1.jpg" alt="Importance of Learning about IEDs" 
+		title="Importance of Learning about IEDs"/></a>
+		</div>
+	</div><!--end trainingbody_a-->
+</div><!--end trainingbox1a-->
+
+<div class="trainingboxRight">
+	<div class="trainingbar_top1">Module 2:</div>
+	<div class="trainingbar_top2">Threat Awareness</div> 
+<div class="trainingbody_a">
+<div id="bodyboxright"><a id="Link2" href="/IED/resources/jsp/toModule2.html" target="_blank" onClick="moduleClicked('module2')"><img id="module2Image" src="/IED/resources/images/popupModule2.jpg" alt="Threat Awareness" 
+	title="Threat Awareness"/></a>
+</div> 
+</div><!--end trainingbody_a-->
+</div><!--end trainingboxRight-->
+
+<div class="trainingboxRight">
+	<div class="trainingbar_top1">Module 3:</div>
+	<div class="trainingbar_top2">Recognize, Avoid, Isolate, and Notify</div> 
+<div class="trainingbody_a">
+<div id="bodyboxright"><a id="Link3" href="/IED/resources/jsp/toModule3.html" target="_blank" onClick="moduleClicked('module3')"><img id="module3Image" src="/IED/resources/images/popupModule3.jpg" alt="Recognize, Avoid, Isolate, and Notify" 
+	title="Recognize, Avoid, Isolate, and Notify"/></a>
+</div>  
+</div><!--end trainingbody_a-->
+</div><!--end trainingboxRight--> 
+<br />
+
+ </div><!--end columnwrap2--> 
+<div class="clear"></div>
+ 
+<br/>
+<div id="columnwrap1">
+<div class="trainingbox1b">
+<div class="trainingbody_b">
+	<p>Complete all three modules and the short survey below, issued by the Office for Bombing Prevention, below.</p>
+
+	<div id="bodyboxcenter_a">
+		<a href="/IED/resources/jsp/toSurvey.html" target="_blank" >
+			<img src="/IED/resources/images/training_tab_popup_survey.png" alt="Training Survey 1"/>
+		</a>
+	</div>	
+
+</div>	<!-- end .trainingbody_b -->
+</div> <!-- end .trainingbox1b -->
+ 
+</div><!--end columnwrap1--> 
+ 
+
+<!--end leftdiv-->
+
+
+
+</div><!--end trainingcontainer_a-->
+
+</body></html>
+

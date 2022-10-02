@@ -1,0 +1,13 @@
+name = Openlayers Block Switcher
+description = Openlayers Block Switcher
+core = 7.x
+package = "Openlayers"
+
+dependencies[] = openlayers
+
+; Information added by Drupal.org packaging script on 2017-06-12
+version = "7.x-3.1+83-dev"
+core = "7.x"
+project = "openlayers"
+datestamp = "1497281650"
+

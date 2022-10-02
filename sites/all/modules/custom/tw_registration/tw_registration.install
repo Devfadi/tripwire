@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implementation of hook_schema()
+ */
+function tw_registration_schema()
+{
+	// This table contains one row for each user, and holds stats
+	// regarding their password changes and when they were last
+	// forced to change their password.
+	$schema['tw_registration_evc_email'] = array
+	(
+		'description' => t('Holds EVC verification link details'),
+		'fields' => array
+		(
+			'uid' => array
+			(
+				'description' => t('The UID from the {users} table'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			'evc_hash' => array
+			(
+				'description' => t('A UNIX timestamp referring to the date that the EVC link was generated'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+			),
+			'verification_date' => array
+			(
+				'description' => t('A UNIX timestamp referring to the last date on which the EVC contact verified the EVC contact.'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+			),
+			'nineday_date' => array
+			(
+				'description' => t('A UNIX timestamp referring to the date a nine day reminder email was sent.'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+			),
+			'fourteenday_date' => array
+			(
+				'description' => t('A UNIX timestamp referring to the date a fourteen day reminder email was sent.'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 10,
+				'default' => NULL,
+            ),
+            'verification_status' => array
+			(
+				'description' => t('A Boolean status of if this is verified. 1 means verified.'),
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'length' => 1,
+				'default' => NULL,
+			),
+		),
+        'primary key' => array('uid'),
+    );
+    return $schema;
+}
+
+function tw_registration_update_7102()
+{
+	$schema = tw_registration_schema();
+	if(!db_table_exists('tw_registration_evc_email')) {
+		db_create_table('tw_registration_evc_email', $schema['tw_registration_evc_email']);
+	}
+}
+
+/**
+* Implements hook_update_N().
+* Add role for anonymous user to fix drupal_set_message problem
+* We are doing this via this recommended fix: https://www.drupal.org/node/264132
+*/
+function tw_registration_update_7103() {
+	db_query('INSERT INTO users_roles (uid, rid) VALUES (0, 1);');
+}
+
+/**
+ * TRIP2-485: Adding HTML formatting option for our emails
+ */
+
+function tw_registration_update_7104() {
+  $current = variable_get('mail_system', array('default-system' => 'MaillogMailSystem'));
+  $addition = array('tw_registration' => 'TWRegistrationMailSystem');
+  variable_set('mail_system', array_merge($current, $addition));
+}
+
+/**
+* Implements hook_update_N().
+* Added EVC Overdue taxonomy term
+*/
+function tw_registration_update_7105() {
+	$vocab = taxonomy_vocabulary_machine_name_load('evc_status');
+	$evc_overdue = new stdClass();
+	$evc_overdue->name = 'EVC Overdue';
+	$evc_overdue->vid = $vocab->vid;
+	
+	taxonomy_term_save($evc_overdue);
+  }

@@ -1,0 +1,12 @@
+name = Force TFA
+description = Module requires selected roles to be forced into enrolling in TFA (two factor auth). If user is in the role and has not setup TFA, the are redirected to the TFA security page with no other options.
+core = 7.x
+configure = admin/config/system/force-tfa
+dependencies[] = tfa
+dependencies[] = tfa_basic
+
+; Information added by Drupal.org packaging script on 2019-06-23
+version = "7.x-1.0"
+core = "7.x"
+project = "force_tfa"
+datestamp = "1561329185"

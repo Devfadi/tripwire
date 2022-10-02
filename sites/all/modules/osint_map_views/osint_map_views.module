@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Osint Map Views feature.
+ */
+
+include_once 'osint_map_views.features.inc';

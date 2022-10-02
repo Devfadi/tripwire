@@ -1,0 +1,49 @@
+<?php
+
+function tw_ipaddress2location_init() {
+
+  //getting Ip address of the user
+  $ipaddress = $_SERVER['REMOTE_ADDR'];
+
+  //using IP Geolocation Api
+  $url = 'http://ip-api.com/json/'. $ipaddress;
+  $response = drupal_http_request($url);
+  $output = json_decode($response->data);
+
+  global $user;
+
+  $userType = '';
+  if ($user->uid == 0) {
+    //is visitor
+    $userType = 'visitor';
+  } else {
+    // is logged user
+    $userType = $user->roles;
+    $userType = implode(', ', $userType);
+  }
+
+  $date_time = date("Y-m-d H:i:s");
+  $selectip = db_select('tw_ipaddress')->fields('tw_ipaddress')
+    ->condition('ip',$ipaddress,'=')
+    ->orderBy("id", "DESC")
+    ->range(0,1)
+    ->execute()->fetchAssoc();
+
+  if($selectip == '' || date('Y-m-d',strtotime($selectip['date_time'])) != date('Y-m-d',strtotime($date_time))) {
+    $nid = db_insert('tw_ipaddress')
+      ->fields(array(
+        'country' => $output->country,
+        'country_code' => $output->countryCode,
+        'region' => $output->region,
+        'region_name' => $output->regionName,
+        'city' => $output->city,
+        'zip' => $output->zip,
+        'user_role' => $userType,
+        'ip' => $output->query,
+        'timezone' => $output->timezone,
+        'date_time' => $date_time,
+      ))
+      ->execute();
+  }
+
+}

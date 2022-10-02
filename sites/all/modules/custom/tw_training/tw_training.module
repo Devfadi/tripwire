@@ -1,0 +1,8 @@
+<?php
+
+function tw_training_init() {
+  global $user;
+  if ($user->uid !== 0) {
+    user_cookie_save(array('user_uid' => $user->uid));
+  }
+}

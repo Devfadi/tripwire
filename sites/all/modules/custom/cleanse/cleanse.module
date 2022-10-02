@@ -1,0 +1,39 @@
+<?php
+
+/**
+* Implements hook_menu().
+*/
+function cleanse_menu() {
+    $items['admin/config/development/cleanse'] = array(
+        'title' => 'Cleanse',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('cleanse_settings'),
+		'access arguments' => array('access administration pages'),
+		'file' => 'cleanse.admin.inc',
+        );
+
+        $items['admin/config/development/cleanse/progress'] = array(
+            'title' => t('Cleanse progress'),
+            'page callback' => 'cleanse_progress',
+            'access callback' => TRUE,
+            'type' => MENU_CALLBACK,
+            );
+
+    return $items;
+}
+
+function cleanse_progress() {
+    $progress = array(
+        'message' => t('Starting cleans...'),
+        'percentage' => -1,
+    );
+
+    $completed_percentage = variable_get('cleanse_status'); // calculate progress percentage here
+
+    if($completed_percentage){
+        $progress['message'] = t('Cleansing...');
+        $progress['percentage'] = $completed_percentage ;
+    }
+
+    drupal_json_output($progress);
+}

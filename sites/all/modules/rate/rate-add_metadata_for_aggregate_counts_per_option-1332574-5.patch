@@ -1,0 +1,50 @@
+From 95bc816e3ab318a7eea261f6a099284c234cbfaa Mon Sep 17 00:00:00 2001
+From: Ryan Jacobs <rjacobs@422459.no-reply.drupal.org>
+Date: Wed, 27 Nov 2013 17:21:30 -0600
+Subject: [PATCH] Issue #1332574 by rjacobs: Add option metadata to allow
+ aggregate counts per option in views.
+
+---
+ rate.module | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/rate.module b/rate.module
+index 26f55e5..35774b9 100644
+--- a/rate.module
++++ b/rate.module
+@@ -1466,13 +1466,26 @@ function rate_login_page() {
+ function rate_votingapi_metadata_alter(&$data) {
+   $widgets = variable_get(RATE_VAR_WIDGETS, array());
+   foreach ($widgets as $widget) {
+-    if (isset($data['tags'][$widget->tag])) {
+-      continue;
++    // Report the tags that Rate widgets use to Voting API.
++    if (!isset($data['tags'][$widget->tag])) {
++      $data['tags'][$widget->tag] = array(
++        'name' => $widget->tag,
++        'description' => t('Tag used for %name Rate widget', array('%name' => $widget->title)),
++      );
++    }
++    // Report the options that Rate widgets use to Voting API so they can be
++    // associated with aggregate option functions. This only applies to widgets
++    // of value type "Options". 
++    if ($widget->value_type == 'option') {
++      foreach ($widget->options as $option) {
++        if (isset($option[0]) && !isset($data['functions']['option-' . $option[0]])) {
++          $data['functions']['option-' . $option[0]] = array(
++            'name' => t('Number of votes for option @option', array('@option' => $option[0])),
++            'description' => t('Option @option used for @name Rate widget', array('@option' => $option[0], '@name' => $widget->title)),
++          );
++        }
++      }
+     }
+-    $data['tags'][$widget->tag] = array(
+-      'name' => $widget->tag,
+-      'description' => t('Tag used for %name Rate widget', array('%name' => $widget->title)),
+-    );
+   }
+ 
+   if (!isset($data['value_types']['option'])) {
+-- 
+1.8.3.4 (Apple Git-47)
+

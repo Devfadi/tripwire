@@ -1,0 +1,194 @@
+/*changes to seven admin theme.node-type-library-document*/
+
+
+.xxxpage-admin .filter-wrapper .form-item, .xxxpage-admin div.teaser-checkbox .form-item, .xxxpage-admin .form-item .form-item {
+     background: #f6f6f6 none repeat scroll 0px 0px ! important;
+     display: inline ! important;
+     padding: 0.1% 1% 0.1% 0.2% ! important;
+     font-size: 1.03em;
+     line-height: 2em !important;
+     border: 1px solid #dedede !important;
+}
+
+.view-user-totals .views-exposed-form, .reg-users-block .views-exposed-form { display: none; }
+
+/* TRIP2-359*/
+form.node-form .group-metadata-tags {
+    overflow: hidden;
+    clear: both;
+}
+form.node-form .group-metadata-tags .form-wrapper {
+    float: left;
+    margin-left: 20px;
+}
+
+/* TRIP2-366: Hiding certain profile fields */
+.page-user-edit #edit-contact, .page-user-edit #edit-redirect, .page-user-edit #edit-metatags, .page-user-edit [class*="autologout-user"], .page-user-edit .redirect-list {
+    display: none;
+}
+
+/* TRIP2-369: Hiding fields on profile pages */
+.page-user-edit #edit-password-reset {
+    display: none;
+}
+
+.page-user-edit-personal-information #edit-password-reset {
+    display: block;
+}
+
+/* TRIP2-373 - Hiding Password sent email field because it should never be seen or edited by anyone. Its purpose is to store the timestamp of a password reset email being sent for Help Desk purposes*/
+.page-user-edit .field-name-field-password-email-sent {
+    display: none;
+}
+
+/* TRIP2-367: User actions 
+.page-user-edit .field-name-field-do-not-approve select {
+    color: #fff;
+    background: #eb5424;
+    border-radius: 5px;
+    padding: 8px 18px;
+    box-shadow: 0 0 4px rgba(0,0,0,.25);
+    border: 1px solid #ccc;
+}
+
+.page-user-edit .field-name-field-do-not-approve select option {
+    color: #fff;
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.page-user-edit .field-name-field-do-not-approve select:active, .page-user-edit .field-name-field-do-not-approve select:focus {
+    color: #fff;
+}
+*/
+
+/* TRIP2-409: Account Approved */
+.page-user-edit .group-accountbuttons {
+    clear: both;
+    overflow: hidden;
+}
+.page-user-edit .group-accountbuttons .field-type-list-text { 
+    float: left;
+    margin-right: 15px;
+}
+/*
+.page-user-edit .group-accountbuttons select {
+    color: #fff;
+    border-radius: 5px;
+    padding: 8px 18px;
+    box-shadow: 0 0 4px rgba(0,0,0,.25);
+    border: 1px solid #ccc;
+}
+
+.page-user-edit .group-accountbuttons select option {
+    color: #fff;
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+}
+
+.page-user-edit .group-accountbuttons select:active, .page-user-edit .group-accountbuttons select:focus {
+    color: #fff;
+}
+
+.page-user-edit .field-name-field-account-approved select {
+    background: #2431eb;
+}
+
+.page-user-edit .field-name-field-email-user select {
+    background: #eb243c;
+}*/
+
+.region.region-content a.csvbutton {
+    cursor: pointer;
+    padding: 4px 17px;
+    margin-bottom: 1em;
+    margin-right: 1em;
+    color: #5a5a5a;
+    text-align: center;
+    font-weight: normal;
+    font-size: 1.077em;
+    font-family: "Lucida Grande", Verdana, sans-serif;
+    border: 1px solid #e4e4e4;
+    border-bottom: 1px solid #b4b4b4;
+    border-left-color: #d2d2d2;
+    border-right-color: #d2d2d2;
+    background: url(/themes/seven/images/buttons.png) 0 0 repeat-x;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+  }
+
+  .region.region-content a.csvbutton:hover {
+      text-decoration: none;
+  }
+
+  /* Hiding security questions on other */
+  body.page-user-edit-personal-information .password-reset-question-set, body.page-user-edit-indicate-evc .password-reset-question-set, body.page-user-edit-employment-information .password-reset-question-set,
+  body.page-user-edit-privacy-information .password-reset-question-set, .page-user-edit-my-tripwire-subscriptions .password-reset-question-set {
+      display: none;
+  }
+
+  /* TRIP2-500 */
+  fieldset.password-stats {
+      padding-top: 0;
+  }
+
+  fieldset.password-stats ul li {
+      margin-bottom: 10px;
+  }
+  
+  fieldset.password-stats ul li .result {
+      font-weight: bold;
+  }
+
+  /* TRIP2-503 */
+  .form-item-roles .form-checkboxes .roles-block, .form-item-roleassign-roles .form-checkboxes .roles-block{
+      display: inline-block;
+      vertical-align: top;
+      margin-right: 40px;
+  }
+
+  .page-user-edit input.disabled {
+      background-color: #eee;
+      color: #777;
+  }
+
+  /* TRIP2-577 */
+  .view-content-administration .views-widget-filter-created input, .view-content-administration .views-widget-filter-changed input, .view-content-administration .views-widget-filter-timestamp input {
+      width: 85px;
+  }
+
+  .helptext {
+      font-size: .8em;
+  }
+
+  #admin-menu li a span.wire {
+    font-style: italic;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* T2OM-94 */
+  .view-Maillog .views-exposed-widgets .views-submit-button {
+      clear: left;
+  }
+
+  input.readonly {
+    opacity : .50;
+    filter  : alpha(opacity=50); /* IE<9 */
+    cursor  : default;
+ }
+
+ /* T2OM-147 */
+ .addqueue {
+    text-transform: capitalize;
+ }
+
+ /* T2OM-145 */
+ .view-content-administration .views-exposed-form .views-widget-filter-type select {
+     height: 90px;
+ }
+
+ .view-content-administration .views-exposed-form #edit-created-wrapper {
+     clear: both;
+ }

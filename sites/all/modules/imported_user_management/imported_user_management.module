@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Imported user management feature.
+ */
+
+include_once 'imported_user_management.features.inc';

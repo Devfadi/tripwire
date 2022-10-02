@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Documents available to international users feature.
+ */
+
+include_once 'documents_available_to_international_users.features.inc';

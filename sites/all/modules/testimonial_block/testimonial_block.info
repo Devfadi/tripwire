@@ -1,0 +1,10 @@
+name = Testimonial block
+core = 7.x
+package = Features
+dependencies[] = fe_block
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[fe_block_settings][] = views-testimonials_v2-block_1
+features[features_api][] = api:2
+features[views_view][] = testimonials_v2
+features_exclude[dependencies][ctools] = ctools
